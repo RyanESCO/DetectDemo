@@ -1,0 +1,5 @@
+<resources>
+    <declare-styleable name="ToothButton">
+        <attr name="toothDrawable" format="color|reference" />
+    </declare-styleable>
+</resources>

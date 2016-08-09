@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="ShroudButton">
+        <attr name="shroudDrawable" format="color|reference" />
+        <attr name="shroudBackground" format="string"/>
+    </declare-styleable>
+</resources>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="4dp">
+
+    <android.support.v7.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/card_view"
+        android:orientation="vertical"
+        android:animateLayoutChanges="true"
+        android:focusableInTouchMode="false"
+        android:background="@color/white">
+
+
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:orientation="vertical" android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent">-->
+
+    <!--<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/card_view"-->
+        <!--android:orientation="vertical"-->
+        <!--android:animateLayoutChanges="true"-->
+        <!--android:focusableInTouchMode="false"-->
+        <!--android:layout_marginLeft="5dp"-->
+        <!--android:layout_marginTop="10dp"-->
+        <!--android:layout_marginRight="5dp"-->
+        <!--android:layout_marginBottom="10dp">-->
+
+        <!--<ImageView-->
+            <!--android:layout_width="200dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:id="@+id/configImage"-->
+            <!--android:layout_gravity="center_horizontal" />-->
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white">
+
+            <FrameLayout
+                android:layout_width="fill_parent"
+                android:layout_height="250dp">
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnImageSelect"
+                    android:layout_gravity="center_horizontal"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/ripple"
+                    android:src="@drawable/bucket_5_tooth" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical"
+                android:layout_margin="@dimen/card_outer_border">
+
+                <TextView android:id="@+id/configImageTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="24dp"
+                    android:text="@string/unknown_device"
+                    android:textColor="@color/default_text_color"
+                    android:clickable="false" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/alarm_title"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/border_top"
+                android:gravity="left">
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Select"
+                    android:id="@+id/btnSelect"
+                    android:textColor="@color/green"
+                    android:background="@color/transparent"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_marginLeft="@dimen/card_controls_outer_border"
+                    android:paddingLeft="4dp"
+                    android:paddingRight="4dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+
+</FrameLayout>

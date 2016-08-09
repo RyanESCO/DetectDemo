@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/group_reset"
+        android:showAsAction="ifRoom|withText"
+        android:title="Reset"
+        android:visible="true"/>
+    <item
+        android:id="@+id/group_connected"
+        android:showAsAction="ifRoom|withText"
+        android:title="Connected"
+        android:visible="true"/>
+
+</menu>

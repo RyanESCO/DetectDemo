@@ -1,0 +1,7 @@
+<resources>
+    <declare-styleable name="BucketLayout">
+        <attr name="bucketDrawable" format="color|reference" />
+        <!--<attr name="bucketDrawableFacing" format="color|reference" />-->
+        <attr name="isBucketOperaterLayout" format="boolean" />
+    </declare-styleable>
+</resources>
