@@ -18,6 +18,7 @@ import com.escocorp.detectionDemo.custom.PartsDefinitions;
 import com.escocorp.detectionDemo.models.DemoPart;
 import com.escocorp.detectionDemo.models.EscoPart;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -88,7 +89,7 @@ public class PartDetailFragment extends Fragment {
         textViewUsage.setText(demoPart.getUsage());
 
         mChart = (LineChart) rootView.findViewById(R.id.chart1);
-        mChart.setDescription("CHART DESCRIPTION");
+        mChart.setDescription("Sensor Heartbeat");
         mChart.setNoDataTextDescription("Waiting for Device Data Broadcast");
 
         initializeChart();
@@ -103,7 +104,24 @@ public class PartDetailFragment extends Fragment {
         data = new LineData();
         data.setValueTextColor(Color.WHITE);
         mChart.setData(data); //add empty data
-        mChart.setVisibleYRange(0f,-100f, YAxis.AxisDependency.LEFT);
+
+        YAxis yAxisLeft = mChart.getAxis(YAxis.AxisDependency.LEFT);
+        YAxis yAxisRight = mChart.getAxis(YAxis.AxisDependency.RIGHT);
+        XAxis xAxis = mChart.getXAxis();
+        mChart.setAutoScaleMinMaxEnabled(false);
+        //yAxisLeft.setAxisMaxValue(12f);
+        //yAxisLeft.setAxisMinValue(0);
+        //XAxis xAxis = mChart.getAxis(XAxisPosition.TOP);
+
+        xAxis.setGranularity(1f);
+        xAxis.setAxisMaxValue(10f);
+        xAxis.setDrawLabels(false);
+        yAxisLeft.setDrawLabels(false);
+
+        yAxisLeft.setEnabled(true);
+        yAxisRight.setEnabled(false);
+        mChart.setDrawGridBackground(false);
+        //mChart.setVisibleYRange(0f,-100f, YAxis.AxisDependency.LEFT);
 
     }
 
@@ -123,7 +141,7 @@ public class PartDetailFragment extends Fragment {
         mChart.notifyDataSetChanged();
 
         // limit the number of visible entries
-        mChart.setVisibleXRangeMaximum(12);
+        mChart.setVisibleXRangeMaximum(10);
 
         // move to the latest entry
         mChart.moveViewToX(data.getEntryCount());

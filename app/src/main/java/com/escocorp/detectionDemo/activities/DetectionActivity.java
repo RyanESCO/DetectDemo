@@ -11,6 +11,14 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.AnimRes;
+import android.support.annotation.IdRes;
+import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
+import android.support.annotation.StyleRes;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -171,12 +179,15 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     }
 
     public void onPartSelected(int position){
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.pop_enter,R.anim.pop_exit);
+
         PartDetailFragment fragment = new PartDetailFragment();
         Bundle args = new Bundle();
         args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
         fragment.setArguments(args);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.part_detail_container, fragment, "DETAIL_FRAG")
+        ft.replace(R.id.part_detail_container, fragment, "DETAIL_FRAG")
                 .commit();
     }
     private void initBucketModel(IBucketConfig config){
@@ -258,16 +269,16 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
-            case R.id.action_reset:
-                /*Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
+/*            case R.id.action_reset:
+                *//*Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
                 clearFragment();
                 bluetoothLEScanner.stop();
                 isScanning = false;
                 updateFAB();
                 mSummaryFragment.clearList();
                 mPartsAdapter.clear();
-                mPartsAdapter.notifyDataSetChanged();*/
-                return true;
+                mPartsAdapter.notifyDataSetChanged();*//*
+                return true;*/
             default:
                 return super.onOptionsItemSelected(item);
         }
