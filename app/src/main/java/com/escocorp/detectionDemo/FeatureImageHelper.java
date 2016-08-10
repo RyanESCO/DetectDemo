@@ -18,13 +18,13 @@ public class FeatureImageHelper {
     private static int getDisconnectedGraphicId(int featureType, boolean directionUp) {
         switch (featureType){
             case MachineFeature.FEATURE_TYPE_TOOTH:
-                return directionUp? R.drawable.tooth:R.drawable.tooth_down;
+                return directionUp? R.drawable.tooth_connected:R.drawable.tooth_connected_down;
             case MachineFeature.FEATURE_TYPE_SHROUD:
-                return directionUp? R.drawable.shroud:R.drawable.shroud_down;
+                return directionUp? R.drawable.shroud_connected:R.drawable.shroud_connected_down;
             case MachineFeature.FEATURE_TYPE_WING_SHROUD:
-                return directionUp? R.drawable.wing_shroud:R.drawable.wing_shroud_down;
+                return directionUp? R.drawable.wing_shroud_connected:R.drawable.wing_shroud_connected_down;
             case MachineFeature.FEATURE_TYPE_BUCKET_MONITOR:
-                return directionUp? R.drawable.bucket_monitor:R.drawable.bucket_monitor;
+                return directionUp? R.drawable.bucket_monitor_connected:R.drawable.bucket_monitor_connected;
             default:
                 return -1;
         }

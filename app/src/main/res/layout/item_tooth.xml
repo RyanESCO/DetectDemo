@@ -20,5 +20,5 @@
         android:textSize="@dimen/component_label"
         android:layout_centerHorizontal="true"
         android:textAlignment="center"
-        android:visibility="visible" />
+        android:visibility="gone" />
 </RelativeLayout>

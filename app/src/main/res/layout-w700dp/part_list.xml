@@ -1,6 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:baselineAligned="false"
@@ -19,20 +20,20 @@
         android:layout_width="0dp"
         android:layout_weight="4"
         android:orientation="vertical"
+        android:layout_margin="20dp"
         android:layout_height="match_parent">
 
-        <!--<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/part_list"
-            android:name="com.escocorp.escosmartinventory.PartListFragment"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+        <com.escocorp.detectionDemo.custom.HalfBucketLayout
             android:layout_width="match_parent"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            app:layoutManager="LinearLayoutManager"
-            tools:context=".activities.PartListActivity"
-            tools:listitem="@layout/part_list_content" />-->
+            android:layout_height="match_parent"
+            android:id="@+id/shovelLayout"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="2dp"
+            android:orientation="horizontal"
+            custom:bucketDrawable="@drawable/shovel"
+            custom:isBucketOperaterLayout="false"
+            android:layout_marginEnd="0dp"
+            android:visibility="visible" />
         </LinearLayout>
 
 

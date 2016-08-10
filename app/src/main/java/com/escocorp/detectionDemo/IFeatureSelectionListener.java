@@ -11,6 +11,6 @@ import com.escocorp.detectionDemo.models.IMachineFeature;
 public interface IFeatureSelectionListener {
     void toggleFeatureState(IMachineFeature feature, Context context);
     void addChangeListener(RecyclerView.Adapter pairingsChangeListener);
-    void assignPosition(Sensor device, int position);
+    //void assignPosition(Sensor device, int position);
     Bucket getPairingModel();
 }

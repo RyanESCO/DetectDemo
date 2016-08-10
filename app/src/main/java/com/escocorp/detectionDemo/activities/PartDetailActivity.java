@@ -47,8 +47,8 @@ public class PartDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(PartDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(PartDetailFragment.ARG_ITEM_ID));
+            arguments.putString(PartDetailFragment.ARG_ITEM_SELECTED,
+                    getIntent().getStringExtra(PartDetailFragment.ARG_ITEM_SELECTED));
             PartDetailFragment fragment = new PartDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

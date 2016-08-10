@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.escocorp.detectionDemo.IFeatureSelectionListener;
@@ -136,19 +137,16 @@ public class MachineFeatureAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         }
     }
 
-    private void handleFeatureClick(int position, boolean isDetecting){
+    private void handleFeatureClick(int position){
         final Bucket pairingModel = pairingsController.getPairingModel();
         final IMachineFeature machineFeature = pairingModel.getFeatures().get(position);
-        int currentState = machineFeature.getState();
 
-        if(!isDetecting){
-            pairingsController.toggleFeatureState(machineFeature,context);
-            return;
-        } else if (isDetecting && currentState ==2){
-            pairingsController.toggleFeatureState(machineFeature,context);
-        }
+        //display part stats
 
-        beginProximityDetection(machineFeature, position);
+        final Intent displayPartDataIntent = new Intent("DISPLAY_PART_DATA_INTENT");
+        displayPartDataIntent.putExtra("position",position);
+        displayPartDataIntent.putExtra("name",machineFeature.getName());
+        LocalBroadcastManager.getInstance(context).sendBroadcast(displayPartDataIntent);
 
     }
 
@@ -247,7 +245,7 @@ public class MachineFeatureAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
                             int featureType = pairingsController.getPairingModel().getFeatures().get(position).getFeatureType();
                             prefs.edit().putInt("feature_type",featureType).commit();
-                            //handleFeatureClick(position,isDetectingMode);
+                            handleFeatureClick(position);
 
                         }
                     });
