@@ -33,15 +33,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.escocorp.detectionDemo.activities.PartDetailActivity"
-            android:label="@string/title_part_detail"
-            android:parentActivityName=".activities.DetectionActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.DetectionActivity" />
-        </activity>
+        <service android:name=".BluetoothLeService" android:enabled="true"/>
     </application>
 
 </manifest>

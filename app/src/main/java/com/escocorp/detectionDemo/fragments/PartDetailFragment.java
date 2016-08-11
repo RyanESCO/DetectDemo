@@ -1,22 +1,27 @@
 package com.escocorp.detectionDemo.fragments;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.escocorp.detectionDemo.activities.PartDetailActivity;
+import com.escocorp.detectionDemo.BluetoothLeService;
+import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.escocorp.detectionDemo.activities.DetectionActivity;
 import com.escocorp.detectionDemo.R;
-import com.escocorp.detectionDemo.custom.PartsDefinitions;
 import com.escocorp.detectionDemo.models.DemoPart;
-import com.escocorp.detectionDemo.models.EscoPart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -26,12 +31,6 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
-/**
- * A fragment representing a single Part detail screen.
- * This fragment is either contained in a {@link DetectionActivity}
- * in two-pane mode (on tablets) or a {@link PartDetailActivity}
- * on handsets.
- */
 public class PartDetailFragment extends Fragment {
 
     public static final String ARG_ITEM_SELECTED = "item_selected";
@@ -40,6 +39,8 @@ public class PartDetailFragment extends Fragment {
     public TextView mDescription;
     public TextView mAgileNumber;
     public TextView mSensorName;
+
+    BluetoothLeService mBLEService;
 
     private DemoPart demoPart;
 
@@ -59,12 +60,10 @@ public class PartDetailFragment extends Fragment {
 
             demoPart = new DemoPart(itemSelected);
 
-            Activity activity = this.getActivity();
-            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null) {
-                //appBarLayout.setTitle(mItem.content);
-            }
         }
+
+
+
     }
 
     @Override
@@ -94,11 +93,64 @@ public class PartDetailFragment extends Fragment {
 
         initializeChart();
 
-        addChartDataPoint(-66);
-        addChartDataPoint(-76);
-        addChartDataPoint(-56);
         return rootView;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        final IntentFilter serviceBoundIntentFilter = new IntentFilter();
+        serviceBoundIntentFilter.addAction(DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND);
+
+        final IntentFilter btIntentFilter = new IntentFilter();
+        btIntentFilter.addAction(DeviceScanCallback.DEVICE_SCAN_RESULT);
+
+        getActivity().registerReceiver(mBlueToothServiceReceiver, serviceBoundIntentFilter);
+        getActivity().registerReceiver(mDeviceScanReceiver, btIntentFilter);
+
+        mBLEService = ((DetectionActivity)getActivity()).getBLEService();
+
+        //diabled for now
+        //mBLEService.scanForDevices(true);
+    }
+
+    private final BroadcastReceiver mBlueToothServiceReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND.equals(action)) {
+                Toast.makeText(getContext(),"SERVICE BOUND",Toast.LENGTH_SHORT).show();
+                //scanLeDevice(true);
+            }
+        }
+    };
+
+    private final BroadcastReceiver mDeviceScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch(action){
+                case DeviceScanCallback.DEVICE_SCAN_COMPLETE:
+                    Log.d("RCD1","scan complete");
+
+                    break;
+                case DeviceScanCallback.DEVICE_SCAN_RESULT:
+                    int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
+                    String deviceName = intent.getStringExtra("name");
+                    if (deviceName.equals(demoPart.getDeviceName())) {
+                        addChartDataPoint(RSSI);
+                        Log.d("RCD1","match: " + deviceName);
+                    }
+
+                    break;
+
+                default:
+
+                    break;
+            }
+        }
+    };
 
     private void initializeChart(){
         data = new LineData();
@@ -109,9 +161,6 @@ public class PartDetailFragment extends Fragment {
         YAxis yAxisRight = mChart.getAxis(YAxis.AxisDependency.RIGHT);
         XAxis xAxis = mChart.getXAxis();
         mChart.setAutoScaleMinMaxEnabled(false);
-        //yAxisLeft.setAxisMaxValue(12f);
-        //yAxisLeft.setAxisMinValue(0);
-        //XAxis xAxis = mChart.getAxis(XAxisPosition.TOP);
 
         xAxis.setGranularity(1f);
         xAxis.setAxisMaxValue(10f);
@@ -121,7 +170,8 @@ public class PartDetailFragment extends Fragment {
         yAxisLeft.setEnabled(true);
         yAxisRight.setEnabled(false);
         mChart.setDrawGridBackground(false);
-        //mChart.setVisibleYRange(0f,-100f, YAxis.AxisDependency.LEFT);
+
+        mChart.setTouchEnabled(false);
 
     }
 
@@ -147,8 +197,7 @@ public class PartDetailFragment extends Fragment {
         mChart.moveViewToX(data.getEntryCount());
 
         // this automatically refreshes the chart (calls invalidate())
-        // mChart.moveViewTo(data.getXValCount()-7, 55f,
-        // AxisDependency.LEFT);
+        //mChart.invalidate();
     }
 
     private LineDataSet createSet() {
@@ -171,6 +220,9 @@ public class PartDetailFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        getActivity().unregisterReceiver(mBlueToothServiceReceiver);
+        getActivity().unregisterReceiver(mDeviceScanReceiver);
+        mBLEService.scanForDevices(false);
 
     }
 }

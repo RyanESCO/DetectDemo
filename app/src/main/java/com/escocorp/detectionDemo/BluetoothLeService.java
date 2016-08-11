@@ -26,7 +26,7 @@ import java.util.concurrent.Semaphore;
 public class BluetoothLeService extends Service {
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
-    public static final int SCAN_LENGTH = 20000; //20 secs
+    public static final int SCAN_LENGTH = 85000; //85 secs
 
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_QUEUED = 1;
@@ -186,6 +186,7 @@ public class BluetoothLeService extends Service {
     public boolean scanForDevices(boolean on){
         if(on){
             //Toast.makeText(getApplicationContext(),"start scan",Toast.LENGTH_SHORT).show();
+            Log.d("RCD","scanning started");
             //Turn scanning on
             if(!isScanningDevices()){
                 mScanCallback = new DeviceScanCallback(this);
@@ -200,6 +201,7 @@ public class BluetoothLeService extends Service {
                     public void run() {
                         if(isScanningDevices())
                             scanForDevices(false);
+                        Log.d("RCD","scanning stopped");
                             //let listeners know the scan is done
                             sendBroadcast(DeviceScanCallback.DEVICE_SCAN_COMPLETE);
                     }

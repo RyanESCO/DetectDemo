@@ -6,10 +6,10 @@
         app:showAsAction="always"
         android:title="@string/action_scan_title"
         android:visible="true" />-->
-    <!--<item
+    <item
         android:id="@+id/action_reset"
         app:showAsAction="always"
         android:title="@string/action_reset"
-        android:visible="true" />-->
+        android:visible="true" />
 
 </menu>

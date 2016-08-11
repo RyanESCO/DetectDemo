@@ -3,14 +3,17 @@ package com.escocorp.detectionDemo.activities;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
@@ -29,6 +32,7 @@ import android.widget.Toast;
 
 
 import com.escocorp.detectionDemo.BluetoothLEScanner;
+import com.escocorp.detectionDemo.BluetoothLeService;
 import com.escocorp.detectionDemo.IPairingsListenerActivity;
 import com.escocorp.detectionDemo.R;
 import com.escocorp.detectionDemo.ScanListener;
@@ -36,6 +40,7 @@ import com.escocorp.detectionDemo.adapters.MachineFeatureAdapter;
 import com.escocorp.detectionDemo.adapters.PairingsController;
 import com.escocorp.detectionDemo.custom.HalfBucketLayout;
 import com.escocorp.detectionDemo.custom.IconSpinnerProgressDialog;
+import com.escocorp.detectionDemo.fragments.LossAlertFragment;
 import com.escocorp.detectionDemo.fragments.PartDetailFragment;
 import com.escocorp.detectionDemo.models.Bucket;
 import com.escocorp.detectionDemo.models.BucketConfig;
@@ -67,8 +72,28 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String SAVED_STATE = "saved_State";
 
+    public static final String ACTION_BLUETOOTH_SVC_BOUND = "com.escocorp.ACTION_BLUETOOTH_SVC_BOUND";
+
     PartDetailFragment mFragment;
     //InventorySummaryFragment mSummaryFragment;
+
+    protected BluetoothLeService mBluetoothLeService = null;
+
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            final BluetoothLeService.BluetoothQueueServiceLocalBinder binder =
+                    (BluetoothLeService.BluetoothQueueServiceLocalBinder) service;
+            mBluetoothLeService = binder.getService();
+            sendBroadcast(new Intent(DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND));
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mBluetoothLeService = null;
+        }
+    };
 
     private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -118,14 +143,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         shovelLayout.setAdapter(mMachineFeatureAdapter);
         mMachineFeatureAdapter.notifyDataSetChanged();
 
-        /*if (findViewById(R.id.part_detail_container) != null) {
-            mTwoPane = true;
-        }
-
-        if(mTwoPane){
-
-
-        }*/
+        final Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android M Permission check
@@ -166,6 +185,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         //bluetoothLEScanner.startScan();
     }
 
+    public BluetoothLeService getBLEService(){
+        return mBluetoothLeService;
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -180,7 +203,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
     public void onPartSelected(int position){
 
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        alertLoss();
+
+        /*FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.pop_enter,R.anim.pop_exit);
 
         PartDetailFragment fragment = new PartDetailFragment();
@@ -188,7 +213,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
         fragment.setArguments(args);
         ft.replace(R.id.part_detail_container, fragment, "DETAIL_FRAG")
-                .commit();
+                .commit();*/
     }
     private void initBucketModel(IBucketConfig config){
 
@@ -269,16 +294,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
-/*            case R.id.action_reset:
-                *//*Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
-                clearFragment();
-                bluetoothLEScanner.stop();
-                isScanning = false;
-                updateFAB();
-                mSummaryFragment.clearList();
-                mPartsAdapter.clear();
-                mPartsAdapter.notifyDataSetChanged();*//*
-                return true;*/
+            case R.id.action_reset:
+                Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
+
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -299,5 +318,25 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     @Override
     public void connectToDevice(Bucket pairingsMap, String bleAddress) {
 
+    }
+
+    public void alertLoss(){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.alert,R.anim.pop_exit);
+
+        LossAlertFragment fragment = new LossAlertFragment();
+        Bundle args = new Bundle();
+        args.putInt(LossAlertFragment.ARG_ITEM_DETECTED, 1);
+        fragment.setArguments(args);
+        ft.replace(R.id.part_detail_container, fragment, "LOSS_ALERT_FRAGMENT")
+                .commit();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mServiceConnection);
+        mBluetoothLeService = null;
     }
 }

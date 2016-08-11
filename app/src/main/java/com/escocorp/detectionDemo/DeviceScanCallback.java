@@ -58,7 +58,7 @@ public class DeviceScanCallback extends ScanCallback {
 
     @Override
     public void onScanResult (int callbackType, ScanResult result) {
-        Log.d("RCD","OnScanResult");
+        //Log.d("RCD","OnScanResult");
 
         final Gson gson = new Gson();
         String payload = gson.toJson(result);
@@ -77,6 +77,7 @@ public class DeviceScanCallback extends ScanCallback {
 
             final Sensor sensor = new Sensor(result);
             String deviceName = sensor.getName();
+            Log.d("RCD1","OnScanResult " + deviceName);
             Log.d("RCD",sensor.getName() + " at " + String.valueOf(sensor.getRssi()) + "db");
 
             if(!mSensorMap.containsKey(sensor.getName())) {
@@ -95,6 +96,7 @@ public class DeviceScanCallback extends ScanCallback {
             final Intent broadcast = new Intent(DEVICE_SCAN_RESULT);
             broadcast.putExtra(EXTRA_ADDRESS, sensor.getMacAddress());
             broadcast.putExtra(EXTRA_DEVICE, sensor);
+            broadcast.putExtra("name",sensor.getName());
             broadcast.putExtra(RSSI,result.getRssi());
             mContext.sendBroadcast(broadcast);
         }
