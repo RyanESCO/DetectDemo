@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import com.escocorp.detectionDemo.BluetoothLEScanner;
 import com.escocorp.detectionDemo.BluetoothLeService;
+import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.escocorp.detectionDemo.IPairingsListenerActivity;
 import com.escocorp.detectionDemo.R;
 import com.escocorp.detectionDemo.ScanListener;
@@ -109,6 +110,11 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
 
             }
+
+            if(intent.getAction().equals(DeviceScanCallback.SIMULATED_LOSS_DETECTED)){
+                alertLoss();
+
+            }
         }
     };
 
@@ -170,19 +176,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         progressDialog = new IconSpinnerProgressDialog(this);
         progressDialog.setIndeterminate(true);
 
-        bluetoothLEScanner = new BluetoothLEScanner(this);
-        bluetoothLEScanner.setListener(new ScanListener() {
-            @Override
-            public void onScanned() {
-                // update and log data after scan
-                //updateList();
-
-            }
-        });
-
-        mBeacons = bluetoothLEScanner.mBeacons;
-
-        //bluetoothLEScanner.startScan();
     }
 
     public BluetoothLeService getBLEService(){
@@ -192,20 +185,21 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     @Override
     protected void onResume() {
         super.onResume();
-        if(!bluetoothLEScanner.check())
-            finish();
+       /* if(!bluetoothLEScanner.check())
+            finish();*/
 
         IntentFilter localBroadcastFilter = new IntentFilter();
         localBroadcastFilter.addAction("DISPLAY_PART_DATA_INTENT");
+        localBroadcastFilter.addAction(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mLocalBroadcastReceiver,localBroadcastFilter);
     }
 
     public void onPartSelected(int position){
 
-        alertLoss();
+        //alertLoss();
 
-        /*FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.pop_enter,R.anim.pop_exit);
 
         PartDetailFragment fragment = new PartDetailFragment();
@@ -213,7 +207,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
         fragment.setArguments(args);
         ft.replace(R.id.part_detail_container, fragment, "DETAIL_FRAG")
-                .commit();*/
+                .commitAllowingStateLoss();
     }
     private void initBucketModel(IBucketConfig config){
 
@@ -296,11 +290,26 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
             case R.id.action_reset:
                 Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
+                removeFragment();
 
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void removeFragment() {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.alert,R.anim.pop_exit);
+
+        Fragment lossFragment = getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT");
+        Fragment detailFragment = getSupportFragmentManager().findFragmentByTag("DETAIL_FRAG");
+
+        if(!(lossFragment==null)) ft.remove(getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT"));
+        if(!(detailFragment==null)) ft.remove(getSupportFragmentManager().findFragmentByTag("DETAIL_FRAG"));
+        ft.commit();
+
+
     }
 
     public void showProgressDialog(){
@@ -329,7 +338,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         args.putInt(LossAlertFragment.ARG_ITEM_DETECTED, 1);
         fragment.setArguments(args);
         ft.replace(R.id.part_detail_container, fragment, "LOSS_ALERT_FRAGMENT")
-                .commit();
+                .commitAllowingStateLoss();
 
     }
 

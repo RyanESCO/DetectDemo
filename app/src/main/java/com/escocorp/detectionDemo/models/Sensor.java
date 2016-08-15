@@ -1,8 +1,13 @@
 package com.escocorp.detectionDemo.models;
 
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.le.ScanResult;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.google.gson.annotations.SerializedName;
@@ -20,24 +25,14 @@ public class Sensor implements ISensor, Parcelable {
     private transient String name;
     private transient int bluetoothType;
     private transient int featureType = 0;
+    private double threshold = 0.4;
     private int rssi;
     private int averageRssi;
+    private Point3D averageAcceleration;
     private ArrayList<Integer> rssiHistory = new ArrayList<>();
+    public ArrayList<Point3D> accelerationHistory = new ArrayList<>();
 
     public Sensor(){}
-
-    /*public Sensor(BluetoothDevice bleDevice){
-        this.macAddress = bleDevice.getAddress();
-        this.bluetoothType = bleDevice.getType();
-        setName(bleDevice.getName());
-    }*/
-
-    /*//TO DO: remove constructor, used for testing
-    public Sensor(String address, String name, int signalStrength){
-        this.macAddress = address;
-        this.name = name;
-        setRssi(signalStrength);
-    }*/
 
     public Sensor(ScanResult result){
         this.macAddress = result.getDevice().getAddress();
@@ -49,6 +44,23 @@ public class Sensor implements ISensor, Parcelable {
         }
         setRssi(result.getRssi());
 
+    }
+
+    public void updateSensor(ScanResult result, Context context){
+        setByteString(result.getScanRecord().getBytes());
+
+        if(accelerationHistory.size()<3){
+            //wait to evaluate until enough data is collected
+            return;
+        }
+        Point3D newData = accelerationHistory.get(accelerationHistory.size()-1);
+        if(Math.abs(newData.x-averageAcceleration.x)>threshold || Math.abs(newData.y-averageAcceleration.y)>threshold || Math.abs(newData.z-averageAcceleration.z)>threshold){
+            //alert
+            Toast.makeText(context,"ALERT",Toast.LENGTH_SHORT).show();
+            //Send a broadcast to main part of the app to alert it to new found device
+            final Intent broadcast = new Intent(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
+        }
     }
 
     public void setRssi(int rssi){
@@ -66,6 +78,46 @@ public class Sensor implements ISensor, Parcelable {
             return -100;
         }
         return sum/rssiHistory.size();
+    }
+
+    public Point3D calculateAverageAcceleration(){
+        if(accelerationHistory.size()==0){
+            return null;
+        }
+        double sumX = 0;
+        double sumY = 0;
+        double sumZ = 0;
+        int count=0;
+
+        for(Point3D accel: accelerationHistory){
+            count++;
+            sumX = sumX + accel.x;
+            sumY = sumY + accel.y;
+            sumZ = sumZ + accel.z;
+        }
+
+        return new Point3D(sumX/count, sumY/count, sumZ/count);
+
+    }
+
+    public Point3D getStandardDeviationOfNewData(Point3D newData){
+        Point3D averageValues = calculateAverageAcceleration();
+        Point3D sumErrorSquared = new Point3D(0,0,0);
+        for(Point3D data: accelerationHistory){
+            double errorX = data.x - averageValues.x;
+            double errorY = data.y - averageValues.y;
+            double errorZ = data.z - averageValues.z;
+            sumErrorSquared = new Point3D(
+                    sumErrorSquared.x + (errorX*errorX),
+                    sumErrorSquared.y + (errorY*errorY),
+                    sumErrorSquared.z + (errorZ*errorZ));
+        }
+        Point3D standardDeviation = new Point3D(
+                Math.pow(sumErrorSquared.x,0.5),
+                Math.pow(sumErrorSquared.y,0.5),
+                Math.pow(sumErrorSquared.z,0.5));
+
+        return standardDeviation;
     }
 
     public int getAverageRssi(){
@@ -149,11 +201,20 @@ public class Sensor implements ISensor, Parcelable {
                     break;
                 case DeviceScanCallback.DATA_TYPE_MANUFACTURER_SPECIFIC_DATA:
                     type = "Manufacturing Specific Data";
-                    /*if(Integer.parseInt(lengthString)<5 ){
-                        this.wakeState = WAKE_STATE_ASLEEP;
+
+                    //byte[] data = DeviceScanCallback.extractBytes(bytes,currentPos,dataLength);
+
+
+
+
+                    if(Integer.parseInt(lengthString)<5 ){
+                        //this.wakeState = WAKE_STATE_ASLEEP;
                     } else {
-                        this.wakeState = WAKE_STATE_ACTIVE;
-                    }*/
+                        //this.wakeState = WAKE_STATE_ACTIVE;
+                        Point3D acceleration = DeviceScanCallback.getAcceleration(bytes, currentPos + 4);
+                        accelerationHistory.add(acceleration);
+                        averageAcceleration = calculateAverageAcceleration();
+                    }
                     break;
                 default:
                     // Just ignore, we don't handle such data type.

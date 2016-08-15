@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.escocorp.detectionDemo.Point3D;
 import com.escocorp.detectionDemo.R;
 import com.escocorp.detectionDemo.custom.DemoHelper;
 import com.escocorp.detectionDemo.custom.PartsDefinitions;

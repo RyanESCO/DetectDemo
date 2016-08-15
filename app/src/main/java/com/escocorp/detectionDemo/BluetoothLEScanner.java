@@ -12,6 +12,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 import com.escocorp.detectionDemo.models.EscoPart;
+import com.escocorp.detectionDemo.models.Point3D;
+
 import java.util.HashMap;
 
 public class BluetoothLEScanner implements BluetoothAdapter.LeScanCallback {

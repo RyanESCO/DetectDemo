@@ -12,12 +12,12 @@ public class PartData {
     /*public static ArrayList<DemoParts> partsArrayList = new ArrayList<DemoParts>();*/
 
     public static final String[] deviceNameArray = {
-            "ESCO#00115",
-            "ESCO#00241",
-            "ESCO#00136",
+            "ESCO#00248",
+            "ESCO#00180",
+            "ESCO#00157",
             "ESCO#00998",
             "ESCO#00214",
-            "ESCO#00138",
+            "ESCO#00235",
             "ESCO#00243"};
 
     public static final String[] productTypeArray = {

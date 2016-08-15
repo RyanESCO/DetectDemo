@@ -1,6 +1,8 @@
 package com.escocorp.detectionDemo.fragments;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothClass;
+import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +24,7 @@ import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.escocorp.detectionDemo.activities.DetectionActivity;
 import com.escocorp.detectionDemo.R;
 import com.escocorp.detectionDemo.models.DemoPart;
+import com.escocorp.detectionDemo.models.Sensor;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -31,6 +34,8 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.util.HashMap;
+
 public class PartDetailFragment extends Fragment {
 
     public static final String ARG_ITEM_SELECTED = "item_selected";
@@ -39,6 +44,8 @@ public class PartDetailFragment extends Fragment {
     public TextView mDescription;
     public TextView mAgileNumber;
     public TextView mSensorName;
+
+    private HashMap<String, Sensor> map;
 
     BluetoothLeService mBLEService;
 
@@ -61,6 +68,8 @@ public class PartDetailFragment extends Fragment {
             demoPart = new DemoPart(itemSelected);
 
         }
+
+        map = new HashMap<>();
 
 
 
@@ -112,7 +121,7 @@ public class PartDetailFragment extends Fragment {
         mBLEService = ((DetectionActivity)getActivity()).getBLEService();
 
         //diabled for now
-        //mBLEService.scanForDevices(true);
+        mBLEService.scanForDevices(true);
     }
 
     private final BroadcastReceiver mBlueToothServiceReceiver = new BroadcastReceiver() {
@@ -138,11 +147,29 @@ public class PartDetailFragment extends Fragment {
                 case DeviceScanCallback.DEVICE_SCAN_RESULT:
                     int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
                     String deviceName = intent.getStringExtra("name");
+                    ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
                     if (deviceName.equals(demoPart.getDeviceName())) {
                         addChartDataPoint(RSSI);
                         Log.d("RCD1","match: " + deviceName);
                     }
 
+                    if(deviceName.equals("ESCO#00241")){
+                        int check =3;
+
+                    }
+
+                    Sensor sensor = (Sensor)intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
+                    sensor.updateSensor(result,context);
+                    if(!map.containsKey(deviceName)){
+                        map.put(deviceName,sensor);
+                    } else {
+                        Sensor sensorToModify = map.get(deviceName);
+                        sensorToModify.updateSensor(result,context);
+                    }
+
+                    if(map.get(deviceName).accelerationHistory.size()>3){
+                        int check = 3;
+                    }
                     break;
 
                 default:

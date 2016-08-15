@@ -52,18 +52,13 @@
 
 
  **************************************************************************************************/
-package com.escocorp.detectionDemo;
-
-import android.os.Parcel;
-import android.os.Parcelable;
+package com.escocorp.detectionDemo.models;
 
 /**
  * Auto generated wrapper class for the data with 3 dimensions.
  * */
-public class Point3D implements Parcelable {
-  public double x;
-  public double y;
-  public double z;
+public class Point3D {
+  public double x, y, z;
 
   public Point3D(double x, double y, double z) {
     this.x = x;
@@ -101,34 +96,4 @@ public class Point3D implements Parcelable {
     return Double.doubleToLongBits(z) == Double.doubleToLongBits(other.z);
   }
 
-  protected Point3D(Parcel in) {
-    x = in.readDouble();
-    y = in.readDouble();
-    z = in.readDouble();
-  }
-
-  @Override
-  public int describeContents() {
-    return 0;
-  }
-
-  @Override
-  public void writeToParcel(Parcel dest, int flags) {
-    dest.writeDouble(x);
-    dest.writeDouble(y);
-    dest.writeDouble(z);
-  }
-
-  @SuppressWarnings("unused")
-  public static final Parcelable.Creator<Point3D> CREATOR = new Parcelable.Creator<Point3D>() {
-    @Override
-    public Point3D createFromParcel(Parcel in) {
-      return new Point3D(in);
-    }
-
-    @Override
-    public Point3D[] newArray(int size) {
-      return new Point3D[size];
-    }
-  };
 }

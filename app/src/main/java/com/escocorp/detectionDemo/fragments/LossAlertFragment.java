@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,26 +59,14 @@ public class LossAlertFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.loss_alert_fragment, container, false);
 
-        /*ImageView imageViewPartImage = (ImageView) rootView.findViewById(R.id.imageViewPartImage);
-        TextView textViewDeviceName = (TextView) rootView.findViewById(R.id.textViewDeviceName);
-        TextView textViewProductType = (TextView) rootView.findViewById(R.id.textViewProductType);
-        TextView textViewInstallationDate = (TextView) rootView.findViewById(R.id.textViewInstallationDate);
-        TextView textViewUsage = (TextView) rootView.findViewById(R.id.textViewUsage);
+        Button button = (Button) rootView.findViewById(R.id.button);
 
-        mDescription = (TextView) rootView.findViewById(R.id.textViewPartDescription);
-        mAgileNumber = (TextView) rootView.findViewById(R.id.textViewAgileNumber);
-        mSensorName = (TextView) rootView.findViewById(R.id.textViewSensorNumber);
-
-        textViewDeviceName.setText(demoPart.getDeviceName());
-        textViewProductType.setText(demoPart.getProductType());
-        textViewInstallationDate.setText(demoPart.getInstallationDate());
-        textViewUsage.setText(demoPart.getUsage());
-
-        mChart = (LineChart) rootView.findViewById(R.id.chart1);
-        mChart.setDescription("Sensor Heartbeat");
-        mChart.setNoDataTextDescription("Waiting for Device Data Broadcast");
-
-        initializeChart();*/
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((DetectionActivity)getActivity()).removeFragment();
+            }
+        });
 
         return rootView;
     }

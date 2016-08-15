@@ -26,7 +26,7 @@ import java.util.concurrent.Semaphore;
 public class BluetoothLeService extends Service {
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
-    public static final int SCAN_LENGTH = 85000; //85 secs
+    public static final int SCAN_LENGTH = 200000; //200 secs
 
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_QUEUED = 1;
@@ -195,6 +195,7 @@ public class BluetoothLeService extends Service {
                 //in case bluetooth is off, turn it on
                 mBluetoothAdapter.enable();
                 mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
+                Log.d("RCD","scanning for " + String.valueOf(SCAN_LENGTH)+ " seconds");
                 //Ensure we won't Scan forever (save battery)
                 mHandler.postDelayed(new Runnable() {
                     @Override

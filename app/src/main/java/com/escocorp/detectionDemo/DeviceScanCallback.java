@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.escocorp.detectionDemo.models.Point3D;
 import com.escocorp.detectionDemo.models.Sensor;
 import com.google.gson.Gson;
 
@@ -26,8 +27,10 @@ public class DeviceScanCallback extends ScanCallback {
     public final static String EXTRA_NAME = "com.rivetry.esco.bluetooth.EXTRA_NAME";
     public final static String EXTRA_DEVICE = "com.rivetry.esco.bluetooth.EXTRA_DEVICE";
     public final static String EXTRA_ERROR_MSG = "com.rivetry.esco.bluetooth.ERROR_MESSAGE";
+    public final static String EXTRA_SCAN_RESULT = "com.rivetry.esco.bluetooth.EXTRA_SCAN_RESULT";
     public static final String PART_ASSIGNED = "com.rivetry.esco.bluetooth.PART_ASSIGNED" ;
     public static final String RSSI = "com.rivetry.esco.bluetooth.RSSI";
+    public static final String SIMULATED_LOSS_DETECTED = "com.rivetry.esco.bluetooth.SIMULATED_LOSS_DETECTED";
 
     public static final int DATA_TYPE_FLAGS = 0x01;
     public static final int DATA_TYPE_SERVICE_UUIDS_16_BIT_PARTIAL = 0x02;
@@ -46,6 +49,17 @@ public class DeviceScanCallback extends ScanCallback {
         byte[] bytes = new byte[length];
         System.arraycopy(scanRecord, start, bytes, 0, length);
         return bytes;
+    }
+
+    public static Point3D getAcceleration(byte[] data, int offset) {
+        final float SCALE = (float) 4096.0;
+
+        int x = (data[offset + 1] << 8) + data[offset + 0];
+        int y = (data[offset + 3] << 8) + data[offset + 2];
+        int z = (data[offset + 5] << 8) + data[offset + 4];
+
+        // scale coords
+        return new Point3D((x / SCALE) * -1, y / SCALE, (z / SCALE) * -1);
     }
 
     final ArrayList<String> mDiscoveredDeviceAddresses = new ArrayList<String>();
@@ -96,6 +110,7 @@ public class DeviceScanCallback extends ScanCallback {
             final Intent broadcast = new Intent(DEVICE_SCAN_RESULT);
             broadcast.putExtra(EXTRA_ADDRESS, sensor.getMacAddress());
             broadcast.putExtra(EXTRA_DEVICE, sensor);
+            broadcast.putExtra(EXTRA_SCAN_RESULT,result);
             broadcast.putExtra("name",sensor.getName());
             broadcast.putExtra(RSSI,result.getRssi());
             mContext.sendBroadcast(broadcast);
