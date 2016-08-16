@@ -2,6 +2,7 @@ package com.escocorp.detectionDemo.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,45 +11,40 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.AnimRes;
-import android.support.annotation.IdRes;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
-import android.support.annotation.StyleRes;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 
-import com.escocorp.detectionDemo.BluetoothLEScanner;
 import com.escocorp.detectionDemo.BluetoothLeService;
 import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.escocorp.detectionDemo.IPairingsListenerActivity;
 import com.escocorp.detectionDemo.R;
-import com.escocorp.detectionDemo.ScanListener;
 import com.escocorp.detectionDemo.adapters.MachineFeatureAdapter;
 import com.escocorp.detectionDemo.adapters.PairingsController;
 import com.escocorp.detectionDemo.custom.HalfBucketLayout;
 import com.escocorp.detectionDemo.custom.IconSpinnerProgressDialog;
+import com.escocorp.detectionDemo.database.PartData;
 import com.escocorp.detectionDemo.fragments.LossAlertFragment;
 import com.escocorp.detectionDemo.fragments.PartDetailFragment;
 import com.escocorp.detectionDemo.models.Bucket;
 import com.escocorp.detectionDemo.models.BucketConfig;
+import com.escocorp.detectionDemo.models.DemoPart;
 import com.escocorp.detectionDemo.models.EscoPart;
 import com.escocorp.detectionDemo.models.IBucketConfig;
 import com.escocorp.detectionDemo.models.IMachineFeature;
 import com.escocorp.detectionDemo.models.Pod;
+import com.escocorp.detectionDemo.models.Sensor;
 import com.escocorp.detectionDemo.models.Shroud;
 import com.escocorp.detectionDemo.models.Tooth;
 import com.escocorp.detectionDemo.models.WingShroud;
@@ -59,16 +55,21 @@ import java.util.UUID;
 
 public class DetectionActivity extends AppCompatActivity implements IPairingsListenerActivity{
 
-    private boolean mTwoPane;
-    private boolean isScanning = false;
     HalfBucketLayout shovelLayout;
-    BluetoothLEScanner bluetoothLEScanner;
     ArrayList<EscoPart> mParts;
-    //SimpleItemRecyclerViewAdapter mPartsAdapter;
-    private HashMap<String, EscoPart> mBeacons;
+
+    private HashMap<String, Sensor> map;
     protected IconSpinnerProgressDialog progressDialog;
     private MachineFeatureAdapter mMachineFeatureAdapter;
     private PairingsController mPairingsController;
+
+
+    public static final int MAX_SCAN_CYCLES = 100;
+    public int numCycles;
+
+    PartDetailFragment activeFragment;
+
+    private DemoPart demoPart;
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String SAVED_STATE = "saved_State";
@@ -96,6 +97,17 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         }
     };
 
+    private final BroadcastReceiver mBlueToothServiceReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND.equals(action)) {
+                Toast.makeText(getApplicationContext(),"SERVICE BOUND",Toast.LENGTH_SHORT).show();
+                mBluetoothLeService.scanForDevices(true);
+            }
+        }
+    };
+
     private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -112,7 +124,12 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             }
 
             if(intent.getAction().equals(DeviceScanCallback.SIMULATED_LOSS_DETECTED)){
-                alertLoss();
+                String name = intent.getStringExtra("name");
+                if(map.size()==0 || getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT")!=null){
+                    return;
+                }
+                Sensor lostSensor = map.get(name);
+                alertLoss(lostSensor);
 
             }
         }
@@ -127,6 +144,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
+
+
+        map = new HashMap<>();
+        numCycles = 0;
 
         mParts = new ArrayList<EscoPart>();
         //mPartsAdapter = new SimpleItemRecyclerViewAdapter(mParts);
@@ -146,6 +167,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mPairingsController = new PairingsController(this);
         mMachineFeatureAdapter = new MachineFeatureAdapter(this, mPairingsController);
         initBucketModel(new BucketConfig(3, 2, 2, 0));
+        initializePairingModelForDemo();
         shovelLayout.setAdapter(mMachineFeatureAdapter);
         mMachineFeatureAdapter.notifyDataSetChanged();
 
@@ -193,20 +215,34 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         localBroadcastFilter.addAction(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mLocalBroadcastReceiver,localBroadcastFilter);
+
+        final IntentFilter btIntentFilter = new IntentFilter();
+        btIntentFilter.addAction(DeviceScanCallback.DEVICE_SCAN_RESULT);
+        btIntentFilter.addAction(DeviceScanCallback.DEVICE_SCAN_COMPLETE);
+        registerReceiver(mDeviceScanReceiver, btIntentFilter);
+
+
+        final IntentFilter serviceBoundIntentFilter = new IntentFilter();
+        serviceBoundIntentFilter.addAction(DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND);
+
+        registerReceiver(mBlueToothServiceReceiver, serviceBoundIntentFilter);
+
     }
 
     public void onPartSelected(int position){
 
         //alertLoss();
 
+        demoPart = new DemoPart(position);
+
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.pop_enter,R.anim.pop_exit);
 
-        PartDetailFragment fragment = new PartDetailFragment();
+        activeFragment = new PartDetailFragment();
         Bundle args = new Bundle();
         args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
-        fragment.setArguments(args);
-        ft.replace(R.id.part_detail_container, fragment, "DETAIL_FRAG")
+        activeFragment.setArguments(args);
+        ft.replace(R.id.part_detail_container, activeFragment, "DETAIL_FRAG")
                 .commitAllowingStateLoss();
     }
     private void initBucketModel(IBucketConfig config){
@@ -291,11 +327,20 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             case R.id.action_reset:
                 Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
                 removeFragment();
+                map.clear();
+                mBluetoothLeService.scanForDevices(false);
 
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mDeviceScanReceiver);
+        unregisterReceiver(mBlueToothServiceReceiver);
     }
 
     public void removeFragment() {
@@ -312,24 +357,27 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
     }
 
-    public void showProgressDialog(){
-        progressDialog.show();
-    }
-
-    public void hideProgressDialog(){
-        progressDialog.hide();
-    }
-
-    public void setProgressDialogIcon(Drawable drawable){
-        progressDialog.setProgressDrawable(drawable);
-    }
-
     @Override
     public void connectToDevice(Bucket pairingsMap, String bleAddress) {
 
     }
 
-    public void alertLoss(){
+    private void initializePairingModelForDemo(){
+
+        //Bucket pairingModel = mPairingsController.getPairingModel();
+        int totalPositions = PartData.deviceNameArray.length;
+        for(int position = 0; position < totalPositions; position++){
+            Sensor device = new Sensor(PartData.deviceNameArray[position]);
+            //IMachineFeature machineFeature = pairingModel.getFeatures().get(position);
+            mPairingsController.assignPosition(device, position);
+        }
+
+    }
+
+    public void alertLoss(Sensor lostSensor){
+        mPairingsController.setDeviceState(lostSensor.getMacAddress(),BluetoothLeService.STATE_CONNECTED);
+        mMachineFeatureAdapter.notifyDataSetChanged();
+
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.alert,R.anim.pop_exit);
 
@@ -340,7 +388,57 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         ft.replace(R.id.part_detail_container, fragment, "LOSS_ALERT_FRAGMENT")
                 .commitAllowingStateLoss();
 
+        mBluetoothLeService.scanForDevices(false);
+        map.clear();
+
     }
+
+    private final BroadcastReceiver mDeviceScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch(action){
+                case DeviceScanCallback.DEVICE_SCAN_COMPLETE:
+                    Log.d("BT","scan complete");
+                    numCycles++;
+
+                    if(numCycles < MAX_SCAN_CYCLES){
+                        Log.d("BT","begin another scan");
+                        mBluetoothLeService.scanForDevices(true);
+                    } else {
+                        //cycle the Service Scan and callback
+                        mBluetoothLeService.scanForDevices(false);
+                        numCycles = 0;
+                        mBluetoothLeService.scanForDevices(true);
+                    }
+
+                    break;
+                case DeviceScanCallback.DEVICE_SCAN_RESULT:
+                    int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
+                    String deviceName = intent.getStringExtra("name");
+                    ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
+                    if (demoPart!=null && deviceName.equals(demoPart.getDeviceName())) {
+                        activeFragment.addChartDataPoint(RSSI);
+                        Log.d("RCD1","match: " + deviceName);
+                    }
+
+                    Sensor sensor = (Sensor)intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
+                    sensor.updateSensor(result,context);
+                    if(!map.containsKey(deviceName)){
+                        map.put(deviceName,sensor);
+                    } else {
+                        Sensor sensorToModify = map.get(deviceName);
+                        sensorToModify.updateSensor(result,context);
+                    }
+
+                    break;
+
+                default:
+
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onDestroy() {

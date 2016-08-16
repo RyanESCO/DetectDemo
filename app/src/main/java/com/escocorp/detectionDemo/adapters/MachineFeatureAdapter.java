@@ -158,35 +158,6 @@ public class MachineFeatureAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
 
     }
-/*    private boolean unpairDevice(IMachineFeature machineFeature){
-        boolean retVal = false;
-        if (null!=machineFeature.getSensor()) {
-            pairingsController.featureUnpaired(machineFeature.getSensor().getMacAddress());
-            retVal = true;
-        }
-        return retVal;
-    }*/
-
-    /*private void createAndShowDisconnectDialog(final IMachineFeature machineFeature) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Would you like to disconnect the selected feature?");
-        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                unpairDevice(machineFeature);
-                machineFeature.setSensor(null);
-                machineFeature.setState(BluetoothLeService.STATE_DISCONNECTED);
-                notifyDataSetChanged();
-                dialog.dismiss();
-            }
-        });
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.dismiss();
-            }
-        });
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }*/
 
     public IMachineFeature getItem(int position) {
         return pairingsController.getPairingModel().getFeatures().get(position);

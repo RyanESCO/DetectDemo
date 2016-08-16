@@ -106,7 +106,9 @@ public class Bucket implements Parcelable {
 
     public boolean containsAddress(String address){
         for (IMachineFeature feature:features){
-            if (null!=feature.getSensor() && feature.getSensor().getMacAddress().equals(address)){
+            if (null!=feature.getSensor() &&
+                    null!=feature.getSensor().getMacAddress() &&
+                    feature.getSensor().getMacAddress().equals(address)){
                 return true;
             }
         }
@@ -115,7 +117,9 @@ public class Bucket implements Parcelable {
 
     public IMachineFeature getFeature(String address){
         for (IMachineFeature feature:features){
-            if (null!=feature.getSensor() && feature.getSensor().getMacAddress().equals(address)){
+            if (null!=feature.getSensor() &&
+                    null!=feature.getSensor().getMacAddress() &&
+                    feature.getSensor().getMacAddress().equals(address)){
                 return feature;
             }
         }

@@ -11,6 +11,8 @@ import com.escocorp.detectionDemo.IPairingsListenerActivity;
 import com.escocorp.detectionDemo.models.Bucket;
 import com.escocorp.detectionDemo.models.IMachineFeature;
 import com.escocorp.detectionDemo.models.ISensor;
+import com.escocorp.detectionDemo.models.MachineFeature;
+import com.escocorp.detectionDemo.models.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -134,9 +136,30 @@ public class PairingsController implements IDeviceSelectionListener, IFeatureSel
     }
 
 
-    /*public void assignPosition(Sensor device, int position){
+    public void assignPosition(Sensor device, int position){
+        /*int position = 0;
+        for (IMachineFeature f:pairingModel.getFeatures()){
+            if (device.getName().equals(f.getName())){
+              position = f.getPosition();
+            }
+        }*/
+
         IMachineFeature feature = pairingModel.getFeatures().get(position);
 
+        if (feature.isBLEComponent()) {
+            feature.setSensor(device);
+            feature.setState(MachineFeature.STATE_ASSIGNED);
+            notifyChangeListeners();
+        }
+
+    }
+
+
+    ///used to fill in Sensor Data after pre-initializing for MinEXPO demo
+    public void updateSensorData(Sensor device){
+        /*int position;
+        //iterate through model to find position
+        IMachineFeature feature = pairingModel.getFeatures().get(position);
         if (feature.isBLEComponent()) {
             //check for existing pairings
             for (IMachineFeature f:pairingModel.getFeatures()){
@@ -149,9 +172,11 @@ public class PairingsController implements IDeviceSelectionListener, IFeatureSel
             feature.setState(MachineFeature.STATE_ASSIGNED);
             //adapterManager.connectToDevice(getPairingModel(), device.getMacAddress());
             notifyChangeListeners();
-        }
+        }*/
 
-    }*/
+
+
+    }
 
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(PAIRING_DATA, pairingModel);
@@ -187,22 +212,4 @@ public class PairingsController implements IDeviceSelectionListener, IFeatureSel
         }
     }
 
-    /*public int getNumPartsQueued() {
-        int count = 0;
-        for(IMachineFeature f:pairingModel.getFeatures()){
-            if(f.getState()==MachineFeature.STATE_QUEUED){
-                count++;
-            }
-        }
-        return count;
-    }
-
-    public void clearPartsQueued(Context context){
-        for(IMachineFeature f:pairingModel.getFeatures()) {
-            if (f.getState() == MachineFeature.STATE_QUEUED) {
-                f.setState(MachineFeature.STATE_UNASSIGNED);
-            }
-        }
-        notifyChangeListeners();
-    }*/
 }

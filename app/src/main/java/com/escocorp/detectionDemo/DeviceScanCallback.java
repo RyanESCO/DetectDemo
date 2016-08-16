@@ -11,6 +11,7 @@ import com.escocorp.detectionDemo.models.Point3D;
 import com.escocorp.detectionDemo.models.Sensor;
 import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -76,7 +77,10 @@ public class DeviceScanCallback extends ScanCallback {
 
         final Gson gson = new Gson();
         String payload = gson.toJson(result);
-        Log.d("RCD - payload",payload);
+        //Log.d("RCD - payload",payload);
+
+        String timeStamp = new SimpleDateFormat("HH.mm.ss.SSS").format(new java.util.Date());
+        Log.d("BT TEST",timeStamp+","+result.getDevice().getName());
 
         final BluetoothDevice device = result.getDevice();
         //we only care about BLE so pare out other bluetooth types

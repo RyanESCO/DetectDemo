@@ -46,6 +46,10 @@ public class Sensor implements ISensor, Parcelable {
 
     }
 
+    public Sensor(String name){
+      setName(name);
+    }
+
     public void updateSensor(ScanResult result, Context context){
         setByteString(result.getScanRecord().getBytes());
 
@@ -59,6 +63,7 @@ public class Sensor implements ISensor, Parcelable {
             Toast.makeText(context,"ALERT",Toast.LENGTH_SHORT).show();
             //Send a broadcast to main part of the app to alert it to new found device
             final Intent broadcast = new Intent(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
+            broadcast.putExtra("name",getName());
             LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
         }
     }

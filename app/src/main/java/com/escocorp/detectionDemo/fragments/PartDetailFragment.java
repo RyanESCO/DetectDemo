@@ -45,10 +45,6 @@ public class PartDetailFragment extends Fragment {
     public TextView mAgileNumber;
     public TextView mSensorName;
 
-    private HashMap<String, Sensor> map;
-
-    BluetoothLeService mBLEService;
-
     private DemoPart demoPart;
 
     private LineChart mChart;
@@ -68,10 +64,6 @@ public class PartDetailFragment extends Fragment {
             demoPart = new DemoPart(itemSelected);
 
         }
-
-        map = new HashMap<>();
-
-
 
     }
 
@@ -109,75 +101,7 @@ public class PartDetailFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        final IntentFilter serviceBoundIntentFilter = new IntentFilter();
-        serviceBoundIntentFilter.addAction(DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND);
-
-        final IntentFilter btIntentFilter = new IntentFilter();
-        btIntentFilter.addAction(DeviceScanCallback.DEVICE_SCAN_RESULT);
-
-        getActivity().registerReceiver(mBlueToothServiceReceiver, serviceBoundIntentFilter);
-        getActivity().registerReceiver(mDeviceScanReceiver, btIntentFilter);
-
-        mBLEService = ((DetectionActivity)getActivity()).getBLEService();
-
-        //diabled for now
-        mBLEService.scanForDevices(true);
     }
-
-    private final BroadcastReceiver mBlueToothServiceReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            if (DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND.equals(action)) {
-                Toast.makeText(getContext(),"SERVICE BOUND",Toast.LENGTH_SHORT).show();
-                //scanLeDevice(true);
-            }
-        }
-    };
-
-    private final BroadcastReceiver mDeviceScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            switch(action){
-                case DeviceScanCallback.DEVICE_SCAN_COMPLETE:
-                    Log.d("RCD1","scan complete");
-
-                    break;
-                case DeviceScanCallback.DEVICE_SCAN_RESULT:
-                    int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
-                    String deviceName = intent.getStringExtra("name");
-                    ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
-                    if (deviceName.equals(demoPart.getDeviceName())) {
-                        addChartDataPoint(RSSI);
-                        Log.d("RCD1","match: " + deviceName);
-                    }
-
-                    if(deviceName.equals("ESCO#00241")){
-                        int check =3;
-
-                    }
-
-                    Sensor sensor = (Sensor)intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
-                    sensor.updateSensor(result,context);
-                    if(!map.containsKey(deviceName)){
-                        map.put(deviceName,sensor);
-                    } else {
-                        Sensor sensorToModify = map.get(deviceName);
-                        sensorToModify.updateSensor(result,context);
-                    }
-
-                    if(map.get(deviceName).accelerationHistory.size()>3){
-                        int check = 3;
-                    }
-                    break;
-
-                default:
-
-                    break;
-            }
-        }
-    };
 
     private void initializeChart(){
         data = new LineData();
@@ -197,6 +121,9 @@ public class PartDetailFragment extends Fragment {
         yAxisLeft.setEnabled(true);
         yAxisRight.setEnabled(false);
         mChart.setDrawGridBackground(false);
+
+        yAxisLeft.setAxisMaxValue(0f);
+        yAxisLeft.setAxisMinValue(-100f);
 
         mChart.setTouchEnabled(false);
 
@@ -224,7 +151,7 @@ public class PartDetailFragment extends Fragment {
         mChart.moveViewToX(data.getEntryCount());
 
         // this automatically refreshes the chart (calls invalidate())
-        //mChart.invalidate();
+        //mChart.moveViewTo(data.getEntryCount() - 7, 50f, YAxis.AxisDependency.LEFT);
     }
 
     private LineDataSet createSet() {
@@ -247,9 +174,11 @@ public class PartDetailFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        getActivity().unregisterReceiver(mBlueToothServiceReceiver);
-        getActivity().unregisterReceiver(mDeviceScanReceiver);
-        mBLEService.scanForDevices(false);
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }

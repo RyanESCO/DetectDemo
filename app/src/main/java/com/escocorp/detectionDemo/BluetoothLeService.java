@@ -26,7 +26,7 @@ import java.util.concurrent.Semaphore;
 public class BluetoothLeService extends Service {
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
-    public static final int SCAN_LENGTH = 200000; //200 secs
+    public static final int SCAN_LENGTH = 1000; //1 secs
 
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_QUEUED = 1;
@@ -132,6 +132,7 @@ public class BluetoothLeService extends Service {
             super.onCharacteristicWrite(gatt, characteristic, status);
         }
     };
+    private int numCycles;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -162,6 +163,8 @@ public class BluetoothLeService extends Service {
 
         mGatts = new ConcurrentHashMap<>();
 
+        numCycles = 0;
+
         //clearConnections();
 
         return true;
@@ -186,7 +189,7 @@ public class BluetoothLeService extends Service {
     public boolean scanForDevices(boolean on){
         if(on){
             //Toast.makeText(getApplicationContext(),"start scan",Toast.LENGTH_SHORT).show();
-            Log.d("RCD","scanning started");
+            Log.d("BT Test","scanning started");
             //Turn scanning on
             if(!isScanningDevices()){
                 mScanCallback = new DeviceScanCallback(this);
@@ -195,16 +198,28 @@ public class BluetoothLeService extends Service {
                 //in case bluetooth is off, turn it on
                 mBluetoothAdapter.enable();
                 mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
-                Log.d("RCD","scanning for " + String.valueOf(SCAN_LENGTH)+ " seconds");
+                Log.d("BT TEST","scanning for " + String.valueOf(SCAN_LENGTH)+ " milliseconds");
                 //Ensure we won't Scan forever (save battery)
+                numCycles ++;
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if(isScanningDevices())
+                        if(isScanningDevices()){
                             scanForDevices(false);
-                        Log.d("RCD","scanning stopped");
+                            Log.d("RCD","scanning stopped");
                             //let listeners know the scan is done
                             sendBroadcast(DeviceScanCallback.DEVICE_SCAN_COMPLETE);
+                        } /*else {
+                            Log.d("BT TEST","scan again");
+                            //stop previous scan
+                            if(mScanCallback!=null){
+                                mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback); //stopLeScan(mScanCallback);
+                                mScanCallback = null;
+                            }
+
+                            scanForDevices(true);
+                        }*/
+
                     }
                 }, SCAN_LENGTH);
 
