@@ -33,8 +33,8 @@ public class BluetoothLeService extends Service {
     public static final int SCAN_LENGTH = 250; //1 secs
 
     public static final int STATE_DISCONNECTED = 0;
-    public static final int STATE_QUEUED = 1;
-    public static final int STATE_CONNECTED = 2;
+    public static final int STATE_LOSS_DETECTED = 1;
+    public static final int STATE_NORMAL = 2;
     public static final int STATE_FAILED_CONNECTION = 3;
 
     public final static String EXTRA_VALUE = "com.rivetry.bluetooth.EXTRA_VALUE";
@@ -90,8 +90,8 @@ public class BluetoothLeService extends Service {
                 Log.e(TAG, "Error connecting to BLE device");
             }else
             if(newState == BluetoothGatt.STATE_CONNECTED){
-                Log.d("RCD","BluetoothGatt.STATE_CONNECTED");
-                mConnectionState = STATE_CONNECTED;
+                Log.d("RCD","BluetoothGatt.STATE_NORMAL");
+                mConnectionState = STATE_NORMAL;
                 if(status == BluetoothGatt.GATT_SUCCESS) {
                     mGatts.put(address, gatt);
                     sendBroadcast(ACTION_GATT_CONNECTED, address);
@@ -349,7 +349,7 @@ public class BluetoothLeService extends Service {
         }
 
         public void execute(){
-            mConnectionState = STATE_QUEUED;
+            mConnectionState = STATE_LOSS_DETECTED;
             bluetoothDevice.connectGatt(context, false, mGattCallback);
             Log.d(TAG, "Trying to create a new connection.");
         }

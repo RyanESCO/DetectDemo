@@ -6,9 +6,9 @@ public class FeatureImageHelper {
 
     public static int getGraphicId(int featureType, int state, boolean directionUp){
         switch (state){
-            case BluetoothLeService.STATE_QUEUED:
-                return getConnectingGraphicId(featureType, directionUp);
-            case BluetoothLeService.STATE_CONNECTED:
+            case BluetoothLeService.STATE_LOSS_DETECTED:
+                return getLossDetectedGraphic(featureType, directionUp);
+            case BluetoothLeService.STATE_NORMAL:
                 return getConnectedGraphicId(featureType, directionUp);
             default:
                 return getDisconnectedGraphicId(featureType, directionUp);
@@ -45,16 +45,16 @@ public class FeatureImageHelper {
         }
     }
 
-    private static int getConnectingGraphicId(int featureType, boolean directionUp) {
+    private static int getLossDetectedGraphic(int featureType, boolean directionUp) {
         switch (featureType){
             case MachineFeature.FEATURE_TYPE_TOOTH:
-                return directionUp? R.drawable.tooth_connecting:R.drawable.tooth_connecting_down;
+                return directionUp? R.drawable.tooth_error:R.drawable.tooth_error_down;
             case MachineFeature.FEATURE_TYPE_SHROUD:
-                return directionUp? R.drawable.shroud_connecting:R.drawable.shroud_connecting_down;
+                return directionUp? R.drawable.shroud_error:R.drawable.shroud_error_down;
             case MachineFeature.FEATURE_TYPE_WING_SHROUD:
-                return directionUp? R.drawable.wing_shroud_connecting:R.drawable.wing_shroud_connecting_down;
+                return directionUp? R.drawable.wing_shroud_error:R.drawable.wing_shroud_error_down;
             case MachineFeature.FEATURE_TYPE_BUCKET_MONITOR:
-                return directionUp? R.drawable.bucket_monitor_connecting:R.drawable.bucket_monitor_connecting;
+                return directionUp? R.drawable.bucket_monitor_error:R.drawable.bucket_monitor_error;
             default:
                 return -1;
         }

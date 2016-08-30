@@ -2,6 +2,7 @@ package com.escocorp.detectionDemo.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -20,9 +21,12 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -48,7 +52,6 @@ import com.escocorp.detectionDemo.models.Sensor;
 import com.escocorp.detectionDemo.models.Shroud;
 import com.escocorp.detectionDemo.models.Tooth;
 import com.escocorp.detectionDemo.models.WingShroud;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -325,17 +328,22 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         switch (item.getItemId()) {
 
             case R.id.action_reset:
-                Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
-                stopScanning();
-                removeFragment();
-                map.clear();
+                reset();
                 return true;
             /*case R.id.action_fake_loss:
-                mPairingsController.setDeviceState("00:07:80:15:37:B0",BluetoothLeService.STATE_CONNECTED);
+                mPairingsController.setDeviceState("00:07:80:15:37:B0",BluetoothLeService.STATE_NORMAL);
                 mMachineFeatureAdapter.notifyDataSetChanged();*/
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void reset(){
+        //Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
+        stopScanning();
+        removeFragment();
+        map.clear();
+        initializePairingModelForDemo();
     }
 
     @Override
@@ -383,18 +391,18 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             device.setMacAddress(PartData.macAddressArray[position]);
             //IMachineFeature machineFeature = pairingModel.getFeatures().get(position);
             mPairingsController.assignPosition(device, position);
+            mPairingsController.setDeviceState(device.getMacAddress(),BluetoothLeService.STATE_NORMAL);
         }
 
-        //String bucketConfigString = new Gson().toJson(mPairingsController);
-        //Log.d("RCD", "Pairing Model: " + bucketConfigString);
+        mMachineFeatureAdapter.notifyDataSetChanged();
 
     }
 
     public void alertLoss(Sensor lostSensor){
-        mPairingsController.setDeviceState(lostSensor.getMacAddress(),BluetoothLeService.STATE_CONNECTED);
+        mPairingsController.setDeviceState(lostSensor.getMacAddress(),BluetoothLeService.STATE_LOSS_DETECTED);
         mMachineFeatureAdapter.notifyDataSetChanged();
 
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        /*FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.alert,R.anim.pop_exit);
 
         LossAlertFragment fragment = new LossAlertFragment();
@@ -402,7 +410,40 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         args.putInt(LossAlertFragment.ARG_ITEM_DETECTED, 1);
         fragment.setArguments(args);
         ft.replace(R.id.part_detail_container, fragment, "LOSS_ALERT_FRAGMENT")
-                .commitAllowingStateLoss();
+                .commitAllowingStateLoss();*/
+
+        /////////////////////////////////////////
+        String titleString= getResources().getString(R.string.dialog_loss_alert_title);
+        String messageString= getResources().getString(R.string.dialog_loss_alert_message);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                this);
+
+        LayoutInflater inflater = getLayoutInflater();
+
+        View view = inflater.inflate(R.layout.dialog_registration,null);
+
+        TextView title = (TextView) view.findViewById(R.id.dialogTitleTextView);
+        TextView message = (TextView) view.findViewById(R.id.dialogMessageTextView);
+
+
+        title.setText(titleString);
+        message.setText(messageString);
+
+        alertDialogBuilder.setView(view)
+                .setCancelable(false)
+                .setPositiveButton("ACCEPT",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int id) {
+                        reset();
+                    }
+                });
+
+        // create alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+
+        // show it
+        alertDialog.show();
+        /////////////////////////////////////////
 
         stopScanning();
         map.clear();

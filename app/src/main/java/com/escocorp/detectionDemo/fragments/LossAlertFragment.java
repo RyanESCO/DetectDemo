@@ -64,7 +64,7 @@ public class LossAlertFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((DetectionActivity)getActivity()).removeFragment();
+                ((DetectionActivity)getActivity()).reset();
             }
         });
 

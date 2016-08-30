@@ -26,6 +26,7 @@ import com.escocorp.detectionDemo.R;
 import com.escocorp.detectionDemo.models.DemoPart;
 import com.escocorp.detectionDemo.models.Sensor;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -92,7 +93,7 @@ public class PartDetailFragment extends Fragment {
         mChart.setDescription("Sensor Heartbeat");
         mChart.setNoDataTextDescription("Waiting for Device Data Broadcast");
 
-        initializeChart();
+        initializeExampleChart();
 
         return rootView;
     }
@@ -119,7 +120,7 @@ public class PartDetailFragment extends Fragment {
         yAxisLeft.setDrawLabels(false);
 
         yAxisLeft.setEnabled(true);
-        yAxisRight.setEnabled(false);
+        yAxisRight.setEnabled(true);
         mChart.setDrawGridBackground(false);
 
         yAxisLeft.setAxisMaxValue(0f);
@@ -127,6 +128,66 @@ public class PartDetailFragment extends Fragment {
 
         mChart.setTouchEnabled(false);
 
+    }
+
+    private void initializeExampleChart(){
+        //mChart.setOnChartValueSelectedListener(this);
+
+        data = new LineData();
+
+        // no description text
+        mChart.setDescription("");
+        mChart.setNoDataTextDescription("You need to provide data for the chart.");
+
+        // enable touch gestures
+        mChart.setTouchEnabled(false);
+
+        mChart.setAutoScaleMinMaxEnabled(true);
+
+        // enable scaling and dragging
+        //mChart.setDragEnabled(true);
+        //mChart.setScaleEnabled(true);
+        mChart.setDrawGridBackground(false);
+
+        // if disabled, scaling can be done on x- and y-axis separately
+        mChart.setPinchZoom(true);
+
+        // set an alternative background color
+        mChart.setBackgroundColor(Color.LTGRAY);
+
+        LineData data = new LineData();
+        data.setValueTextColor(Color.WHITE);
+
+        // add empty data
+        mChart.setData(data);
+
+        // get the legend (only possible after setting data)
+        Legend l = mChart.getLegend();
+
+        // modify the legend ...
+        // l.setPosition(LegendPosition.LEFT_OF_CHART);
+        l.setForm(Legend.LegendForm.LINE);
+        //l.setTypeface(mTfLight);
+        l.setTextColor(Color.WHITE);
+
+        XAxis xl = mChart.getXAxis();
+        //xl.setTypeface(mTfLight);
+        xl.setTextColor(Color.WHITE);
+        xl.setDrawGridLines(false);
+        xl.setAvoidFirstLastClipping(true);
+        xl.setEnabled(true);
+        xl.setGranularity(1f);
+        xl.setAxisMaxValue(10);
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        //leftAxis.setTypeface(mTfLight);
+        leftAxis.setTextColor(Color.WHITE);
+        //leftAxis.setAxisMaxValue(0f);
+        //leftAxis.setAxisMinValue(-100f);
+        leftAxis.setDrawGridLines(true);
+
+        YAxis rightAxis = mChart.getAxisRight();
+        rightAxis.setEnabled(false);
     }
 
     public void addChartDataPoint(int rssi){
@@ -138,7 +199,17 @@ public class PartDetailFragment extends Fragment {
             data.addDataSet(set);
         }
 
-        data.addEntry(new Entry(set.getEntryCount(), (float) rssi), 0);
+        if(set.getEntryCount() > 10){
+            Log.d("RCD","greater than 10");
+            set.removeFirst();
+
+        }
+
+        set.addEntry(new Entry(set.getEntryCount(), (float) rssi));
+        data.removeDataSet(0);
+        data.addDataSet(set);
+
+        //data.addEntry(new Entry(set.getEntryCount(), (float) rssi), 0);
         data.notifyDataChanged();
 
         // let the chart know it's data has changed

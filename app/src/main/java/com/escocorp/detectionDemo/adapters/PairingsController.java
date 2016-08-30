@@ -117,14 +117,14 @@ public class PairingsController implements IDeviceSelectionListener, IFeatureSel
 
         if (feature.isBLEComponent()) {
 
-            if(feature.getState()==MachineFeature.STATE_QUEUED){
+            if(feature.getState()==MachineFeature.STATE_LOSS_DETECTED){
                 feature.setState(previousConfigState);
                 if(previousSensor!=null){
                     feature.setSensor(previousSensor);
                 }
 
             } else {
-                feature.setState(MachineFeature.STATE_QUEUED);
+                feature.setState(MachineFeature.STATE_LOSS_DETECTED);
                 feature.setSensor(null);
 
             }

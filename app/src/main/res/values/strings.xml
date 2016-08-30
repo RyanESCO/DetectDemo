@@ -86,5 +86,7 @@
     <string name="label_reconnect_nuc_upload">Unable to connect to the NUC, please check network connection and try again</string>
     <string name="action_scan_title">Scan</string>
     <string name="action_fake_loss">FAKE LOSS</string>
+    <string name="dialog_loss_alert_title">Investigation Needed</string>
+    <string name="dialog_loss_alert_message">Separation Detected</string>
 
 </resources>
