@@ -151,7 +151,7 @@ public class PartDetailFragment extends Fragment {
         mChart.moveViewToX(data.getEntryCount());
 
         // this automatically refreshes the chart (calls invalidate())
-        //mChart.moveViewTo(data.getEntryCount() - 7, 50f, YAxis.AxisDependency.LEFT);
+        mChart.moveViewTo(data.getEntryCount() - 7, 50f, YAxis.AxisDependency.LEFT);
     }
 
     private LineDataSet createSet() {

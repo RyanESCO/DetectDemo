@@ -48,6 +48,7 @@ import com.escocorp.detectionDemo.models.Sensor;
 import com.escocorp.detectionDemo.models.Shroud;
 import com.escocorp.detectionDemo.models.Tooth;
 import com.escocorp.detectionDemo.models.WingShroud;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,7 +63,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     protected IconSpinnerProgressDialog progressDialog;
     private MachineFeatureAdapter mMachineFeatureAdapter;
     private PairingsController mPairingsController;
-
 
     public static final int MAX_SCAN_CYCLES = 100;
     public int numCycles;
@@ -102,8 +102,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND.equals(action)) {
-                Toast.makeText(getApplicationContext(),"SERVICE BOUND",Toast.LENGTH_SHORT).show();
-                mBluetoothLeService.scanForDevices(true);
+                //Toast.makeText(getApplicationContext(),"SERVICE BOUND",Toast.LENGTH_SHORT).show();
+                beginScanning();
             }
         }
     };
@@ -236,7 +236,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         demoPart = new DemoPart(position);
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.pop_enter,R.anim.pop_exit);
+        ft.setCustomAnimations(R.anim.pop_enter,R.anim.exit);
 
         activeFragment = new PartDetailFragment();
         Bundle args = new Bundle();
@@ -326,11 +326,13 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
             case R.id.action_reset:
                 Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
+                stopScanning();
                 removeFragment();
                 map.clear();
-                mBluetoothLeService.scanForDevices(false);
-
                 return true;
+            /*case R.id.action_fake_loss:
+                mPairingsController.setDeviceState("00:07:80:15:37:B0",BluetoothLeService.STATE_CONNECTED);
+                mMachineFeatureAdapter.notifyDataSetChanged();*/
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -341,6 +343,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         super.onPause();
         unregisterReceiver(mDeviceScanReceiver);
         unregisterReceiver(mBlueToothServiceReceiver);
+
     }
 
     public void removeFragment() {
@@ -354,7 +357,16 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         if(!(detailFragment==null)) ft.remove(getSupportFragmentManager().findFragmentByTag("DETAIL_FRAG"));
         ft.commit();
 
+        beginScanning();
 
+
+    }
+    private void beginScanning() {
+        mBluetoothLeService.scanForDevices(true);
+    }
+
+    private void stopScanning(){
+        mBluetoothLeService.scanForDevices(false);
     }
 
     @Override
@@ -368,9 +380,13 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         int totalPositions = PartData.deviceNameArray.length;
         for(int position = 0; position < totalPositions; position++){
             Sensor device = new Sensor(PartData.deviceNameArray[position]);
+            device.setMacAddress(PartData.macAddressArray[position]);
             //IMachineFeature machineFeature = pairingModel.getFeatures().get(position);
             mPairingsController.assignPosition(device, position);
         }
+
+        //String bucketConfigString = new Gson().toJson(mPairingsController);
+        //Log.d("RCD", "Pairing Model: " + bucketConfigString);
 
     }
 
@@ -388,7 +404,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         ft.replace(R.id.part_detail_container, fragment, "LOSS_ALERT_FRAGMENT")
                 .commitAllowingStateLoss();
 
-        mBluetoothLeService.scanForDevices(false);
+        stopScanning();
         map.clear();
 
     }
@@ -404,12 +420,12 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
                     if(numCycles < MAX_SCAN_CYCLES){
                         Log.d("BT","begin another scan");
-                        mBluetoothLeService.scanForDevices(true);
+                        beginScanning();
                     } else {
                         //cycle the Service Scan and callback
-                        mBluetoothLeService.scanForDevices(false);
+                        stopScanning();
                         numCycles = 0;
-                        mBluetoothLeService.scanForDevices(true);
+                        beginScanning();
                     }
 
                     break;

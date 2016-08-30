@@ -7,6 +7,8 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
@@ -16,7 +18,9 @@ import android.util.Log;
 
 import com.escocorp.detectionDemo.bluetooth.BLECommand;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -26,7 +30,7 @@ import java.util.concurrent.Semaphore;
 public class BluetoothLeService extends Service {
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
-    public static final int SCAN_LENGTH = 1000; //1 secs
+    public static final int SCAN_LENGTH = 250; //1 secs
 
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_QUEUED = 1;
@@ -52,6 +56,8 @@ public class BluetoothLeService extends Service {
 
     Handler mHandler = new Handler();
     DeviceScanCallback mScanCallback;
+    private ScanSettings scanSettings;
+    private List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
 
     BluetoothManager mBluetoothManager;
     BluetoothAdapter mBluetoothAdapter;
@@ -189,15 +195,22 @@ public class BluetoothLeService extends Service {
     public boolean scanForDevices(boolean on){
         if(on){
             //Toast.makeText(getApplicationContext(),"start scan",Toast.LENGTH_SHORT).show();
-            Log.d("BT Test","scanning started");
+
             //Turn scanning on
             if(!isScanningDevices()){
+                Log.d("BT Test","scanning started");
+
+                /*ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
+                scanSettingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+                scanSettings = scanSettingsBuilder.build();*/
+
                 mScanCallback = new DeviceScanCallback(this);
                 //Look for Devices with a standard DEVICE_INFORMATION service
 
                 //in case bluetooth is off, turn it on
                 mBluetoothAdapter.enable();
                 mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
+                //mBluetoothAdapter.getBluetoothLeScanner().startScan(scanFilters, scanSettings, mScanCallback);
                 Log.d("BT TEST","scanning for " + String.valueOf(SCAN_LENGTH)+ " milliseconds");
                 //Ensure we won't Scan forever (save battery)
                 numCycles ++;

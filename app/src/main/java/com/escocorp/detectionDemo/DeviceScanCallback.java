@@ -77,7 +77,7 @@ public class DeviceScanCallback extends ScanCallback {
 
         final Gson gson = new Gson();
         String payload = gson.toJson(result);
-        //Log.d("RCD - payload",payload);
+        Log.d("RCD - payload",payload);
 
         String timeStamp = new SimpleDateFormat("HH.mm.ss.SSS").format(new java.util.Date());
         Log.d("BT TEST",timeStamp+","+result.getDevice().getName());

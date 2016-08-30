@@ -11,5 +11,10 @@
         app:showAsAction="always"
         android:title="@string/action_reset"
         android:visible="true" />
+<!--    <item
+        android:id="@+id/action_fake_loss"
+        app:showAsAction="always"
+        android:title="@string/action_fake_loss"
+        android:visible="true" />-->
 
 </menu>

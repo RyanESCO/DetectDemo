@@ -51,6 +51,9 @@ public class Sensor implements ISensor, Parcelable {
     }
 
     public void updateSensor(ScanResult result, Context context){
+        this.macAddress = result.getDevice().getAddress();
+        setName(result.getDevice().getName());
+        setRssi(result.getRssi());
         setByteString(result.getScanRecord().getBytes());
 
         if(accelerationHistory.size()<3){

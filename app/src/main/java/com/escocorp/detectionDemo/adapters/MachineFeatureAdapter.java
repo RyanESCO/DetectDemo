@@ -150,14 +150,14 @@ public class MachineFeatureAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     }
 
-    private void beginProximityDetection(IMachineFeature machineFeature, int position){
+/*    private void beginProximityDetection(IMachineFeature machineFeature, int position){
         //pairingsController.featureAssigned(machineFeature);
         final Intent beginScanIntent = new Intent(DeviceScanCallback.BEGIN_SCAN);
         beginScanIntent.putExtra("position",position);
         LocalBroadcastManager.getInstance(context).sendBroadcast(beginScanIntent);
 
 
-    }
+    }*/
 
     public IMachineFeature getItem(int position) {
         return pairingsController.getPairingModel().getFeatures().get(position);
