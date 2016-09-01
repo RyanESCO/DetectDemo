@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+    android:id="@+id/coordinatorLayout"
+    tools:context=".activities.DetectionActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -29,6 +30,43 @@
 
         <include layout="@layout/part_list" />
     </FrameLayout>
+
+    <!-- Footer aligned to bottom -->
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        style="@style/AppTheme"
+        android:background="@color/colorPrimary"
+        android:gravity="left"
+        android:paddingLeft="25dp"
+        app:layout_anchor ="@id/coordinatorLayout"
+        app:layout_anchorGravity="bottom">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Monitoring Status"
+            android:gravity="center_vertical"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:id="@+id/textView3"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginStart="10dp" />
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="match_parent"
+            android:id="@+id/led"
+            android:scaleType="centerInside"
+            android:src="@drawable/red_led"
+            android:layout_alignTop="@+id/textView3"
+            android:layout_toEndOf="@+id/textView3"
+            android:layout_marginStart="10dp" />
+
+
+    </LinearLayout>
 
 
     <!--<android.support.design.widget.FloatingActionButton

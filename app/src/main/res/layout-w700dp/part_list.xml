@@ -37,10 +37,36 @@
         </LinearLayout>
 
 
-    <FrameLayout
-        android:id="@+id/part_detail_container"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="3" />
+        android:layout_weight="3"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@color/white"
+            android:elevation="5dp"
+            android:id="@+id/logo"
+            android:src="@drawable/esco_iq_logo"
+            android:scaleType="centerInside"/>
+
+<!--        <FrameLayout
+            android:id="@+id/part_detail_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>-->
+
+        <com.escocorp.detectionDemo.custom.PartDetailViewPager
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:elevation="2dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1">
+
+        </com.escocorp.detectionDemo.custom.PartDetailViewPager>
+    </LinearLayout>
 
 </LinearLayout>

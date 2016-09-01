@@ -35,6 +35,7 @@ public class BluetoothLeService extends Service {
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_LOSS_DETECTED = 1;
     public static final int STATE_NORMAL = 2;
+    public static final int STATE_VIEWING = 3;
     public static final int STATE_FAILED_CONNECTION = 3;
 
     public final static String EXTRA_VALUE = "com.rivetry.bluetooth.EXTRA_VALUE";
@@ -200,17 +201,17 @@ public class BluetoothLeService extends Service {
             if(!isScanningDevices()){
                 Log.d("BT Test","scanning started");
 
-                /*ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
+                ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
                 scanSettingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
-                scanSettings = scanSettingsBuilder.build();*/
+                scanSettings = scanSettingsBuilder.build();
 
                 mScanCallback = new DeviceScanCallback(this);
                 //Look for Devices with a standard DEVICE_INFORMATION service
 
                 //in case bluetooth is off, turn it on
                 mBluetoothAdapter.enable();
-                mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
-                //mBluetoothAdapter.getBluetoothLeScanner().startScan(scanFilters, scanSettings, mScanCallback);
+                //mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
+                mBluetoothAdapter.getBluetoothLeScanner().startScan(scanFilters, scanSettings, mScanCallback);
                 Log.d("BT TEST","scanning for " + String.valueOf(SCAN_LENGTH)+ " milliseconds");
                 //Ensure we won't Scan forever (save battery)
                 numCycles ++;

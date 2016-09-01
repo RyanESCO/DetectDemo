@@ -12,12 +12,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -38,6 +43,7 @@ import com.escocorp.detectionDemo.adapters.MachineFeatureAdapter;
 import com.escocorp.detectionDemo.adapters.PairingsController;
 import com.escocorp.detectionDemo.custom.HalfBucketLayout;
 import com.escocorp.detectionDemo.custom.IconSpinnerProgressDialog;
+import com.escocorp.detectionDemo.custom.PartDetailViewPager;
 import com.escocorp.detectionDemo.database.PartData;
 import com.escocorp.detectionDemo.fragments.LossAlertFragment;
 import com.escocorp.detectionDemo.fragments.PartDetailFragment;
@@ -66,11 +72,15 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     protected IconSpinnerProgressDialog progressDialog;
     private MachineFeatureAdapter mMachineFeatureAdapter;
     private PairingsController mPairingsController;
+    private ImageView led;
 
     public static final int MAX_SCAN_CYCLES = 100;
     public int numCycles;
 
     PartDetailFragment activeFragment;
+    private PartDetailViewPager mPager;
+    private PagerAdapter mPagerAdapter;
+    private ViewPager.OnPageChangeListener listener;
 
     private DemoPart demoPart;
 
@@ -119,7 +129,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                 int position = intent.getIntExtra("position",0);
                 String name = intent.getStringExtra("name");
 
-                Toast.makeText(context,"feature clicked: " + name + " at position " + String.valueOf(position),Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context,"feature clicked: " + name + " at position " + String.valueOf(position),Toast.LENGTH_SHORT).show();
 
                 onPartSelected(position);
 
@@ -161,9 +171,32 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             //(savedInstanceState.getParcelableArrayList(SAVED_STATE));
         }
 
-        View recyclerView = findViewById(R.id.part_list);
-        assert recyclerView != null;
-        //setupRecyclerView((RecyclerView) recyclerView);
+        mPager = (PartDetailViewPager) findViewById(R.id.viewPager);
+        mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
+        mPager.setAdapter(mPagerAdapter);
+        mPager.setScrollDurationFactor(5);
+
+        listener = new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                //not used
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                mPairingsController.setDeviceState(PartData.macAddressArray[position],BluetoothLeService.STATE_VIEWING);
+                mMachineFeatureAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                //not used
+            }
+        };
+
+        mPager.addOnPageChangeListener(listener);
+
+        led = (ImageView) findViewById(R.id.led);
 
         shovelLayout  = (HalfBucketLayout) findViewById(R.id.shovelLayout);
 
@@ -173,9 +206,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         initializePairingModelForDemo();
         shovelLayout.setAdapter(mMachineFeatureAdapter);
         mMachineFeatureAdapter.notifyDataSetChanged();
-
-        final Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
-        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android M Permission check
@@ -230,13 +260,21 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
         registerReceiver(mBlueToothServiceReceiver, serviceBoundIntentFilter);
 
+        final Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
     }
 
     public void onPartSelected(int position){
 
-        //alertLoss();
+        if(position!=mPager.getCurrentItem()){
+            mPairingsController.setDeviceState(PartData.macAddressArray[mPager.getCurrentItem()],BluetoothLeService.STATE_NORMAL);
+            mMachineFeatureAdapter.notifyDataSetChanged();
+        }
 
-        demoPart = new DemoPart(position);
+        mPager.setCurrentItem(position);
+
+        /*demoPart = new DemoPart(position);
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.pop_enter,R.anim.exit);
@@ -246,14 +284,14 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
         activeFragment.setArguments(args);
         ft.replace(R.id.part_detail_container, activeFragment, "DETAIL_FRAG")
-                .commitAllowingStateLoss();
+                .commitAllowingStateLoss();*/
     }
     private void initBucketModel(IBucketConfig config){
 
         final Bucket bucket = new Bucket();
 
         bucket.setId(UUID.randomUUID().toString());
-        bucket.setName("bucket1");
+        bucket.setName("fifteenTooth");
         bucket.setOrientationType(0);
         bucket.setDepth(0);
         bucket.setHeight(0);
@@ -281,18 +319,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         final int numberWShrouds = config.getWingShrouds();
         for (int idx=0;idx<numberWShrouds;idx++){
             id = UUID.randomUUID().toString();
-            //put the first set of wingshrouds first in the feature list
-            if (idx<numberWShrouds/2){
-                wShroud = new WingShroud(idx);
-                wShroud.setId(String.valueOf(id));
-                features.add(idx, wShroud);
-            } else {
-                //put the second set of wingshrouds last in the feature list
-                int pos = features.size();
-                wShroud = new WingShroud(idx);
-                wShroud.setId(String.valueOf(id));
-                features.add(pos, wShroud);
-            }
+            int pos = features.size();
+            wShroud = new WingShroud(idx);
+            wShroud.setId(String.valueOf(id));
+            features.add( wShroud);
         }
 
         for (int idx=0;idx<config.getBucketMonitors();idx++){
@@ -338,6 +368,31 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         }
     }
 
+    /**
+     * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
+     * sequence.
+     */
+    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+        public ScreenSlidePagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            PartDetailFragment fragment = new PartDetailFragment();
+            Bundle args = new Bundle();
+            args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
+            fragment.setArguments(args);
+
+            return fragment;
+        }
+
+        @Override
+        public int getCount() {
+            return PartData.getNumParts();
+        }
+    }
+
     public void reset(){
         //Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
         stopScanning();
@@ -352,6 +407,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         unregisterReceiver(mDeviceScanReceiver);
         unregisterReceiver(mBlueToothServiceReceiver);
 
+        unbindService(mServiceConnection);
     }
 
     public void removeFragment() {
@@ -370,10 +426,12 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
     }
     private void beginScanning() {
+        led.setImageResource(R.drawable.green_led);
         mBluetoothLeService.scanForDevices(true);
     }
 
     private void stopScanning(){
+        led.setImageResource(R.drawable.red_led);
         mBluetoothLeService.scanForDevices(false);
     }
 
@@ -411,39 +469,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         fragment.setArguments(args);
         ft.replace(R.id.part_detail_container, fragment, "LOSS_ALERT_FRAGMENT")
                 .commitAllowingStateLoss();*/
-
-        /////////////////////////////////////////
-        String titleString= getResources().getString(R.string.dialog_loss_alert_title);
-        String messageString= getResources().getString(R.string.dialog_loss_alert_message);
-
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                this);
-
-        LayoutInflater inflater = getLayoutInflater();
-
-        View view = inflater.inflate(R.layout.dialog_registration,null);
-
-        TextView title = (TextView) view.findViewById(R.id.dialogTitleTextView);
-        TextView message = (TextView) view.findViewById(R.id.dialogMessageTextView);
-
-
-        title.setText(titleString);
-        message.setText(messageString);
-
-        alertDialogBuilder.setView(view)
-                .setCancelable(false)
-                .setPositiveButton("ACCEPT",new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,int id) {
-                        reset();
-                    }
-                });
-
-        // create alert dialog
-        AlertDialog alertDialog = alertDialogBuilder.create();
-
-        // show it
-        alertDialog.show();
-        /////////////////////////////////////////
 
         stopScanning();
         map.clear();

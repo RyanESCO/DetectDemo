@@ -51,7 +51,8 @@ public class PartDetailFragment extends Fragment {
     private LineChart mChart;
     private LineData data;
 
-    public PartDetailFragment() {
+    public PartDetailFragment(){
+
     }
 
     @Override
@@ -80,6 +81,8 @@ public class PartDetailFragment extends Fragment {
         TextView textViewInstallationDate = (TextView) rootView.findViewById(R.id.textViewInstallationDate);
         TextView textViewUsage = (TextView) rootView.findViewById(R.id.textViewUsage);
 
+        TextView textViewPosition = (TextView) rootView.findViewById(R.id.textViewPosition);
+
         mDescription = (TextView) rootView.findViewById(R.id.textViewPartDescription);
         mAgileNumber = (TextView) rootView.findViewById(R.id.textViewAgileNumber);
         mSensorName = (TextView) rootView.findViewById(R.id.textViewSensorNumber);
@@ -88,12 +91,13 @@ public class PartDetailFragment extends Fragment {
         textViewProductType.setText(demoPart.getProductType());
         textViewInstallationDate.setText(demoPart.getInstallationDate());
         textViewUsage.setText(demoPart.getUsage());
+        textViewPosition.setText(String.valueOf(itemSelected));
 
         mChart = (LineChart) rootView.findViewById(R.id.chart1);
         mChart.setDescription("Sensor Heartbeat");
         mChart.setNoDataTextDescription("Waiting for Device Data Broadcast");
 
-        initializeExampleChart();
+        initializeChart();
 
         return rootView;
     }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ESCO GET Detection</string>
+    <string name="app_name">GET Detect</string>
     <string name="title_part_detail">Part Detail</string>
 
     <!--titles-->

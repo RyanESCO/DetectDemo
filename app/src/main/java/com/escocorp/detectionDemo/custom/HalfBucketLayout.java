@@ -245,12 +245,6 @@ public class HalfBucketLayout extends LinearLayout {
                 //more interesting/realistic
                 featurePosBaseline+=curveAmount;
 
-                /*if (idx<curveCount && idx!=0){
-                    featurePosBaseline-=curveAmount;
-                } else if (idx>childCount-curveCount){
-                    featurePosBaseline+=curveAmount;
-                }*/
-
                 //use all the calculated values to layout out the teeth/shrouds
                 child = toothShroudLayout.getChildAt(idx);
                 int type = (Integer)child.getTag(R.id.tag_bucket_view_type);
@@ -360,9 +354,9 @@ public class HalfBucketLayout extends LinearLayout {
                     final ViewGroup.LayoutParams layoutParams = child.getLayoutParams();
                     leftPos = contentWidth-wingShroudWidth;
                     if (idx == 0) {
-                        top = 0;
-                    } else {
                         top = wingShroudHeight;
+                    } else {
+                        top = 0;
                     }
 
                     child.layout(leftPos, top, leftPos + wingShroudWidth, top+wingShroudHeight);
@@ -494,7 +488,7 @@ public class HalfBucketLayout extends LinearLayout {
 
     private void configureDownView() {
         if (null!=getAdapter()) {
-            for (int idx = getAdapter().getItemCount()-1; idx>=0; idx--) {
+            for (int idx =0; idx<=getAdapter().getItemCount()-1; idx++) {
                 final IMachineFeature component = adapter.getComponent(idx);
                 final int type = adapter.getItemViewType(idx);
                 final RecyclerView.ViewHolder viewHolder = adapter.createViewHolder(this, type);

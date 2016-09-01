@@ -1,34 +1,19 @@
 package com.escocorp.detectionDemo.fragments;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Color;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.escocorp.detectionDemo.BluetoothLeService;
-import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.escocorp.detectionDemo.R;
 import com.escocorp.detectionDemo.activities.DetectionActivity;
-import com.escocorp.detectionDemo.models.DemoPart;
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.github.mikephil.charting.utils.ColorTemplate;
 
 public class LossAlertFragment extends Fragment {
 
@@ -50,23 +35,39 @@ public class LossAlertFragment extends Fragment {
         }
 
 
-
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.loss_alert_fragment, container, false);
+        View rootView = inflater.inflate(R.layout.loss_alert_layout, container, false);
 
-        Button button = (Button) rootView.findViewById(R.id.button);
+        TextView acceptButton = (TextView) rootView.findViewById(R.id.accept_button);
 
-        button.setOnClickListener(new View.OnClickListener() {
+        acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ((DetectionActivity)getActivity()).reset();
             }
         });
+
+        String titleString= getResources().getString(R.string.dialog_loss_alert_title);
+        String messageString= getResources().getString(R.string.dialog_loss_alert_message);
+
+
+        ImageView alarmView = (ImageView) rootView.findViewById(R.id.imageViewDialog);
+
+        alarmView.setBackgroundResource(R.drawable.alarm_animation);
+        AnimationDrawable anim = (AnimationDrawable) alarmView.getBackground();
+        anim.start();
+
+        TextView title = (TextView) rootView.findViewById(R.id.dialogTitleTextView);
+        TextView message = (TextView) rootView.findViewById(R.id.dialogMessageTextView);
+
+
+        title.setText(titleString);
+        message.setText(messageString);
 
         return rootView;
     }
@@ -75,10 +76,6 @@ public class LossAlertFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        //mBLEService = ((DetectionActivity)getActivity()).getBLEService();
-
-        //diabled for now
-        //mBLEService.scanForDevices(true);
     }
 
     @Override

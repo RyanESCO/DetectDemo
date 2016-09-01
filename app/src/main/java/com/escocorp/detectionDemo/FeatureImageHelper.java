@@ -9,7 +9,9 @@ public class FeatureImageHelper {
             case BluetoothLeService.STATE_LOSS_DETECTED:
                 return getLossDetectedGraphic(featureType, directionUp);
             case BluetoothLeService.STATE_NORMAL:
-                return getConnectedGraphicId(featureType, directionUp);
+                return getNormalGraphicId(featureType, directionUp);
+            case BluetoothLeService.STATE_VIEWING:
+                return getViewingGraphicId(featureType, directionUp);
             default:
                 return getDisconnectedGraphicId(featureType, directionUp);
         }
@@ -30,7 +32,7 @@ public class FeatureImageHelper {
         }
     }
 
-    private static int getConnectedGraphicId(int featureType, boolean directionUp) {
+    private static int getNormalGraphicId(int featureType, boolean directionUp) {
         switch (featureType){
             case MachineFeature.FEATURE_TYPE_TOOTH:
                 return directionUp? R.drawable.tooth_connected:R.drawable.tooth_connected_down;
@@ -40,6 +42,21 @@ public class FeatureImageHelper {
                 return directionUp? R.drawable.wing_shroud_connected:R.drawable.wing_shroud_connected_down;
             case MachineFeature.FEATURE_TYPE_BUCKET_MONITOR:
                 return directionUp? R.drawable.bucket_monitor_connected:R.drawable.bucket_monitor_connected;
+            default:
+                return -1;
+        }
+    }
+
+    private static int getViewingGraphicId(int featureType, boolean directionUp) {
+        switch (featureType){
+            case MachineFeature.FEATURE_TYPE_TOOTH:
+                return directionUp? R.drawable.tooth_connecting:R.drawable.tooth_connecting_down;
+            case MachineFeature.FEATURE_TYPE_SHROUD:
+                return directionUp? R.drawable.shroud_connecting:R.drawable.shroud_connecting_down;
+            case MachineFeature.FEATURE_TYPE_WING_SHROUD:
+                return directionUp? R.drawable.wing_shroud_connecting:R.drawable.wing_shroud_connecting_down;
+            case MachineFeature.FEATURE_TYPE_BUCKET_MONITOR:
+                return directionUp? R.drawable.bucket_monitor_connecting:R.drawable.bucket_monitor_connecting;
             default:
                 return -1;
         }

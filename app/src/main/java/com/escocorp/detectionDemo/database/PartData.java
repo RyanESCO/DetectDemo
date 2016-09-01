@@ -11,6 +11,10 @@ public class PartData {
 
     /*public static ArrayList<DemoParts> partsArrayList = new ArrayList<DemoParts>();*/
 
+    public static int getNumParts(){
+        return deviceNameArray.length;
+    }
+
     public static final String[] deviceNameArray = {
             "ESCO#00248",
             "ESCO#00191",
@@ -39,23 +43,23 @@ public class PartData {
             "Wing Shroud"};
 
     public static final String[] installationDateArray = {
-            "Installed August 21, 2016",
-            "Installed August 29, 2016",
-            "Installed August 21, 2016",
-            "Installed August 29, 2016",
-            "Installed August 21, 2016",
-            "Installed August 29, 2016",
-            "Installed August 21, 2016"
+            "8/31/2016",
+            "9/26/2016",
+            "9/12/2016",
+            "9/26/2016",
+            "9/12/2016",
+            "9/26/2016",
+            "9/31/2016"
             };
 
     public static final String[] usageArray= {
-            "180 Hours",
-            "133 Hours",
-            "180 Hours",
-            "133 Hours",
-            "180 Hours",
-            "133 Hours",
-            "180 Hours"};
+            "260",
+            "8",
+            "180",
+            "8",
+            "180",
+            "8",
+            "260"};
 
 /*    public static final String[] deviceNameArray = {
             "ESCO#00191",
