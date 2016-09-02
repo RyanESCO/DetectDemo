@@ -1,30 +1,20 @@
 package com.escocorp.detectionDemo.fragments;
 
-import android.app.Activity;
-import android.bluetooth.BluetoothClass;
-import android.bluetooth.le.ScanResult;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Color;
-import android.support.design.widget.CollapsingToolbarLayout;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.escocorp.detectionDemo.BluetoothLeService;
-import com.escocorp.detectionDemo.DeviceScanCallback;
-import com.escocorp.detectionDemo.activities.DetectionActivity;
 import com.escocorp.detectionDemo.R;
+import com.escocorp.detectionDemo.activities.DetectionActivity;
 import com.escocorp.detectionDemo.models.DemoPart;
-import com.escocorp.detectionDemo.models.Sensor;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -34,8 +24,6 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
-
-import java.util.HashMap;
 
 public class PartDetailFragment extends Fragment {
 
@@ -50,6 +38,8 @@ public class PartDetailFragment extends Fragment {
 
     private LineChart mChart;
     private LineData data;
+    private FrameLayout mLossFrameLayout;
+    private View mRootView;
 
     public PartDetailFragment(){
 
@@ -58,6 +48,7 @@ public class PartDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("LifeCycle","onCreateView");
 
         if (getArguments().containsKey(ARG_ITEM_SELECTED)) {
 
@@ -73,19 +64,21 @@ public class PartDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.part_detail, container, false);
+        Log.d("LifeCycle","onCreateView");
 
-        ImageView imageViewPartImage = (ImageView) rootView.findViewById(R.id.imageViewPartImage);
-        TextView textViewDeviceName = (TextView) rootView.findViewById(R.id.textViewDeviceName);
-        TextView textViewProductType = (TextView) rootView.findViewById(R.id.textViewProductType);
-        TextView textViewInstallationDate = (TextView) rootView.findViewById(R.id.textViewInstallationDate);
-        TextView textViewUsage = (TextView) rootView.findViewById(R.id.textViewUsage);
+        mRootView = inflater.inflate(R.layout.fragment_part_detail, container, false);
 
-        TextView textViewPosition = (TextView) rootView.findViewById(R.id.textViewPosition);
+        ImageView imageViewPartImage = (ImageView) mRootView.findViewById(R.id.imageViewPartImage);
+        TextView textViewDeviceName = (TextView) mRootView.findViewById(R.id.textViewDeviceName);
+        TextView textViewProductType = (TextView) mRootView.findViewById(R.id.textViewProductType);
+        TextView textViewInstallationDate = (TextView) mRootView.findViewById(R.id.textViewInstallationDate);
+        TextView textViewUsage = (TextView) mRootView.findViewById(R.id.textViewUsage);
+        TextView textViewPosition = (TextView) mRootView.findViewById(R.id.textViewPosition);
+        mLossFrameLayout = (FrameLayout) mRootView.findViewById(R.id.frameLayoutLoss);
 
-        mDescription = (TextView) rootView.findViewById(R.id.textViewPartDescription);
-        mAgileNumber = (TextView) rootView.findViewById(R.id.textViewAgileNumber);
-        mSensorName = (TextView) rootView.findViewById(R.id.textViewSensorNumber);
+        mDescription = (TextView) mRootView.findViewById(R.id.textViewPartDescription);
+        mAgileNumber = (TextView) mRootView.findViewById(R.id.textViewAgileNumber);
+        mSensorName = (TextView) mRootView.findViewById(R.id.textViewSensorNumber);
 
         textViewDeviceName.setText(demoPart.getDeviceName());
         textViewProductType.setText(demoPart.getProductType());
@@ -93,22 +86,23 @@ public class PartDetailFragment extends Fragment {
         textViewUsage.setText(demoPart.getUsage());
         textViewPosition.setText(String.valueOf(itemSelected));
 
-        mChart = (LineChart) rootView.findViewById(R.id.chart1);
+        mChart = (LineChart) mRootView.findViewById(R.id.chart1);
         mChart.setDescription("Sensor Heartbeat");
         mChart.setNoDataTextDescription("Waiting for Device Data Broadcast");
 
         initializeChart();
 
-        return rootView;
+        return mRootView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
+        Log.d("LifeCycle","onResume");
     }
 
     private void initializeChart(){
+        Log.d("LifeCycle","initializeChart");
         data = new LineData();
         data.setValueTextColor(Color.WHITE);
         mChart.setData(data); //add empty data
@@ -116,6 +110,8 @@ public class PartDetailFragment extends Fragment {
         YAxis yAxisLeft = mChart.getAxis(YAxis.AxisDependency.LEFT);
         YAxis yAxisRight = mChart.getAxis(YAxis.AxisDependency.RIGHT);
         XAxis xAxis = mChart.getXAxis();
+
+        mChart.setDrawBorders(true);
         mChart.setAutoScaleMinMaxEnabled(false);
 
         xAxis.setGranularity(1f);
@@ -126,6 +122,10 @@ public class PartDetailFragment extends Fragment {
         yAxisLeft.setEnabled(true);
         yAxisRight.setEnabled(true);
         mChart.setDrawGridBackground(false);
+        yAxisLeft.setDrawGridLines(false);
+        yAxisRight.setDrawGridLines(false);
+        xAxis.setDrawGridLines(false);
+        yAxisRight.setDrawLabels(false);
 
         yAxisLeft.setAxisMaxValue(0f);
         yAxisLeft.setAxisMinValue(-100f);
@@ -134,67 +134,10 @@ public class PartDetailFragment extends Fragment {
 
     }
 
-    private void initializeExampleChart(){
-        //mChart.setOnChartValueSelectedListener(this);
-
-        data = new LineData();
-
-        // no description text
-        mChart.setDescription("");
-        mChart.setNoDataTextDescription("You need to provide data for the chart.");
-
-        // enable touch gestures
-        mChart.setTouchEnabled(false);
-
-        mChart.setAutoScaleMinMaxEnabled(true);
-
-        // enable scaling and dragging
-        //mChart.setDragEnabled(true);
-        //mChart.setScaleEnabled(true);
-        mChart.setDrawGridBackground(false);
-
-        // if disabled, scaling can be done on x- and y-axis separately
-        mChart.setPinchZoom(true);
-
-        // set an alternative background color
-        mChart.setBackgroundColor(Color.LTGRAY);
-
-        LineData data = new LineData();
-        data.setValueTextColor(Color.WHITE);
-
-        // add empty data
-        mChart.setData(data);
-
-        // get the legend (only possible after setting data)
-        Legend l = mChart.getLegend();
-
-        // modify the legend ...
-        // l.setPosition(LegendPosition.LEFT_OF_CHART);
-        l.setForm(Legend.LegendForm.LINE);
-        //l.setTypeface(mTfLight);
-        l.setTextColor(Color.WHITE);
-
-        XAxis xl = mChart.getXAxis();
-        //xl.setTypeface(mTfLight);
-        xl.setTextColor(Color.WHITE);
-        xl.setDrawGridLines(false);
-        xl.setAvoidFirstLastClipping(true);
-        xl.setEnabled(true);
-        xl.setGranularity(1f);
-        xl.setAxisMaxValue(10);
-
-        YAxis leftAxis = mChart.getAxisLeft();
-        //leftAxis.setTypeface(mTfLight);
-        leftAxis.setTextColor(Color.WHITE);
-        //leftAxis.setAxisMaxValue(0f);
-        //leftAxis.setAxisMinValue(-100f);
-        leftAxis.setDrawGridLines(true);
-
-        YAxis rightAxis = mChart.getAxisRight();
-        rightAxis.setEnabled(false);
-    }
-
     public void addChartDataPoint(int rssi){
+        if(data==null){
+            return;  //temporary workaround for null pointer error
+        }
         ILineDataSet set = data.getDataSetByIndex(0);
         // set.addEntry(...); // can be called as well
 
@@ -204,12 +147,14 @@ public class PartDetailFragment extends Fragment {
         }
 
         if(set.getEntryCount() > 10){
-            Log.d("RCD","greater than 10");
-            set.removeFirst();
-
+            Log.d("RCDcount","greater than 10");
+            set = rippleData(set);
+            set.addEntry(new Entry(10,(float)rssi));
+        } else {
+            set.addEntry(new Entry(set.getEntryCount(), (float) rssi));
         }
 
-        set.addEntry(new Entry(set.getEntryCount(), (float) rssi));
+        Log.d("RCDcount","number of points: " + String.valueOf(set.getEntryCount()));
         data.removeDataSet(0);
         data.addDataSet(set);
 
@@ -220,23 +165,77 @@ public class PartDetailFragment extends Fragment {
         mChart.notifyDataSetChanged();
 
         // limit the number of visible entries
-        mChart.setVisibleXRangeMaximum(10);
+        //mChart.setVisibleXRangeMaximum(10);
 
-        // move to the latest entry
-        mChart.moveViewToX(data.getEntryCount());
+        mChart.invalidate();
+    }
 
-        // this automatically refreshes the chart (calls invalidate())
-        mChart.moveViewTo(data.getEntryCount() - 7, 50f, YAxis.AxisDependency.LEFT);
+    //method used as workaround because realtime charting was not working
+    private ILineDataSet rippleData(ILineDataSet set) {
+        ILineDataSet rippledSet = createSet();
+
+        for(int j = 1; j < set.getEntryCount();j++){
+            rippledSet.addEntry(new Entry(j-1,(float)set.getEntryForIndex(j).getY()));
+        }
+
+        return rippledSet;
+
+    }
+
+    public void alertLoss(){
+        mLossFrameLayout.setVisibility(View.VISIBLE);
+        mChart.setVisibility(View.GONE);
+        buildAlertLayout();
+
+    }
+
+    public void buildAlertLayout(){
+        TextView acceptButton = (TextView) mRootView.findViewById(R.id.accept_button);
+
+        acceptButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((DetectionActivity)getActivity()).reset();
+            }
+        });
+
+        String titleString= getResources().getString(R.string.dialog_loss_alert_title);
+        String messageString= getResources().getString(R.string.dialog_loss_alert_message);
+
+        ImageView alarmView = (ImageView) mRootView.findViewById(R.id.imageViewDialog);
+
+        alarmView.setBackgroundResource(R.drawable.alarm_animation);
+        AnimationDrawable anim = (AnimationDrawable) alarmView.getBackground();
+        anim.start();
+
+        TextView title = (TextView) mRootView.findViewById(R.id.dialogTitleTextView);
+        TextView message = (TextView) mRootView.findViewById(R.id.dialogMessageTextView);
+
+        title.setText(titleString);
+        message.setText(messageString);
+    }
+
+
+    public void resetDisplay(){
+        Log.d("RCD","reset display");
+        mLossFrameLayout.setVisibility(View.INVISIBLE);
+        mChart.setVisibility(View.VISIBLE);
+
+        //reset data
+        /*data = new LineData();
+        ILineDataSet set = createSet();
+        data.addDataSet(set);
+        mChart.invalidate();*/
     }
 
     private LineDataSet createSet() {
 
-        LineDataSet set = new LineDataSet(null, "Dynamic Data");
+        LineDataSet set = new LineDataSet(null, "LIVE");
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
         set.setColor(ColorTemplate.getHoloBlue());
-        set.setCircleColor(Color.RED);
+        set.setCircleColor(ColorTemplate.getHoloBlue());
         set.setLineWidth(2f);
-        set.setCircleRadius(4f);
+        set.setCircleRadius(1f);
         set.setFillAlpha(65);
         set.setFillColor(ColorTemplate.getHoloBlue());
         set.setHighLightColor(Color.rgb(244, 117, 117));
@@ -249,7 +248,7 @@ public class PartDetailFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-
+        resetDisplay();
     }
 
     @Override

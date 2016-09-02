@@ -1,14 +1,11 @@
 package com.escocorp.detectionDemo.fragments;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,7 +38,7 @@ public class LossAlertFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.loss_alert_layout, container, false);
+        View rootView = inflater.inflate(R.layout.alarm_layout, container, false);
 
         TextView acceptButton = (TextView) rootView.findViewById(R.id.accept_button);
 

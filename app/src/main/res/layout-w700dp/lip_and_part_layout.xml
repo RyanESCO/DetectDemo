@@ -43,30 +43,46 @@
         android:layout_weight="3"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="@color/white"
-            android:elevation="5dp"
-            android:id="@+id/logo"
-            android:src="@drawable/esco_iq_logo"
-            android:scaleType="centerInside"/>
-
 <!--        <FrameLayout
             android:id="@+id/part_detail_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"/>-->
 
+<!--        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/footer_height"
+            android:gravity="center_vertical|center_horizontal"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="GET Detect"
+            android:textColor="@color/colorPrimary"
+            android:background="@color/white"
+            android:textSize="34sp"
+            android:elevation="8dp"
+            android:textStyle="italic|bold"
+            android:id="@+id/textView4" />-->
+
         <com.escocorp.detectionDemo.custom.PartDetailViewPager
             android:id="@+id/viewPager"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="invisible"
+
             android:elevation="2dp"
-            android:layout_margin="10dp"
-            android:layout_weight="1">
+            android:layout_margin="20dp">
 
         </com.escocorp.detectionDemo.custom.PartDetailViewPager>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:background="@color/white"
+            android:elevation="5dp"
+            android:id="@+id/logo"
+            android:src="@drawable/esco_iq_logo"
+            android:layout_marginBottom="@dimen/footer_height"
+            android:scaleType="centerInside"/>
     </LinearLayout>
 
 </LinearLayout>

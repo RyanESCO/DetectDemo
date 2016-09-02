@@ -63,7 +63,6 @@ public class Sensor implements ISensor, Parcelable {
         Point3D newData = accelerationHistory.get(accelerationHistory.size()-1);
         if(Math.abs(newData.x-averageAcceleration.x)>threshold || Math.abs(newData.y-averageAcceleration.y)>threshold || Math.abs(newData.z-averageAcceleration.z)>threshold){
             //alert
-            Toast.makeText(context,"ALERT",Toast.LENGTH_SHORT).show();
             //Send a broadcast to main part of the app to alert it to new found device
             final Intent broadcast = new Intent(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
             broadcast.putExtra("name",getName());

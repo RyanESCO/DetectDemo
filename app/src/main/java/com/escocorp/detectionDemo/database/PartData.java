@@ -15,6 +15,15 @@ public class PartData {
         return deviceNameArray.length;
     }
 
+    public static int getPositionFromMacAddress(String macAddress){
+        for(int i=0; i < getNumParts();i++){
+            if(macAddress.equals(macAddressArray[i])){
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public static final String[] deviceNameArray = {
             "ESCO#00248",
             "ESCO#00191",
@@ -34,31 +43,31 @@ public class PartData {
             "00:07:80:15:ZZ:ZZ"};
 
     public static final String[] productTypeArray = {
+            "N3R Point",
+            "Shroud",
+            "N3R Point",
+            "Shroud",
+            "N3R Point",
             "Wing Shroud",
-            "N3R Point",
-            "Shroud",
-            "N3R Point",
-            "Shroud",
-            "N3R Point",
             "Wing Shroud"};
 
     public static final String[] installationDateArray = {
+            "9/26/2016",
+            "9/12/2016",
+            "9/26/2016",
+            "9/12/2016",
+            "9/26/2016",
             "8/31/2016",
-            "9/26/2016",
-            "9/12/2016",
-            "9/26/2016",
-            "9/12/2016",
-            "9/26/2016",
-            "9/31/2016"
+            "8/31/2016"
             };
 
     public static final String[] usageArray= {
+            "8",
+            "180",
+            "8",
+            "180",
+            "8",
             "260",
-            "8",
-            "180",
-            "8",
-            "180",
-            "8",
             "260"};
 
 /*    public static final String[] deviceNameArray = {

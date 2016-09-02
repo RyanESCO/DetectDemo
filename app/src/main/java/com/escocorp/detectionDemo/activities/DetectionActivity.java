@@ -2,7 +2,6 @@ package com.escocorp.detectionDemo.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -12,10 +11,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.AnimationDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -26,13 +25,13 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 import com.escocorp.detectionDemo.BluetoothLeService;
@@ -45,7 +44,6 @@ import com.escocorp.detectionDemo.custom.HalfBucketLayout;
 import com.escocorp.detectionDemo.custom.IconSpinnerProgressDialog;
 import com.escocorp.detectionDemo.custom.PartDetailViewPager;
 import com.escocorp.detectionDemo.database.PartData;
-import com.escocorp.detectionDemo.fragments.LossAlertFragment;
 import com.escocorp.detectionDemo.fragments.PartDetailFragment;
 import com.escocorp.detectionDemo.models.Bucket;
 import com.escocorp.detectionDemo.models.BucketConfig;
@@ -61,6 +59,7 @@ import com.escocorp.detectionDemo.models.WingShroud;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 public class DetectionActivity extends AppCompatActivity implements IPairingsListenerActivity{
@@ -73,16 +72,19 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     private MachineFeatureAdapter mMachineFeatureAdapter;
     private PairingsController mPairingsController;
     private ImageView led;
+    private TextView mResetButton;
 
     public static final int MAX_SCAN_CYCLES = 100;
     public int numCycles;
 
     PartDetailFragment activeFragment;
     private PartDetailViewPager mPager;
-    private PagerAdapter mPagerAdapter;
+    private ScreenSlidePagerAdapter mPagerAdapter;
     private ViewPager.OnPageChangeListener listener;
+    private int mScrollState = ViewPager.SCROLL_STATE_IDLE;
 
     private DemoPart demoPart;
+    private boolean mLossDetected = false;
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String SAVED_STATE = "saved_State";
@@ -148,16 +150,25 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_part_list);
+        setContentView(R.layout.activity_detection_demo);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle(getTitle());
 
+        mResetButton = (TextView) findViewById(R.id.textViewReset);
+        mResetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reset();
+            }
+        });
 
         map = new HashMap<>();
         numCycles = 0;
@@ -175,22 +186,28 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
         mPager.setAdapter(mPagerAdapter);
         mPager.setScrollDurationFactor(5);
+        mPager.setOffscreenPageLimit(7);
+        mPager.setPageMargin(5);
 
         listener = new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                //not used
             }
 
             @Override
             public void onPageSelected(int position) {
-                mPairingsController.setDeviceState(PartData.macAddressArray[position],BluetoothLeService.STATE_VIEWING);
-                mMachineFeatureAdapter.notifyDataSetChanged();
+                changeViewingPart(position);
+                demoPart = new DemoPart(position);
+                activeFragment = (PartDetailFragment) mPagerAdapter.getItem(position);
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                //not used
+                if(state==ViewPager.SCROLL_STATE_DRAGGING){
+                    changeViewingPart(-1);
+                    mScrollState = state;
+                }
+                //not used  changePartState(position, BluetoothLeService.STATE_NORMAL);
             }
         };
 
@@ -237,6 +254,24 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         return mBluetoothLeService;
     }
 
+    public void changePartState(int position, int state){
+        if(position==-1){
+            return;
+        }
+        mPairingsController.setDeviceState(PartData.macAddressArray[position],state);
+        mMachineFeatureAdapter.notifyDataSetChanged();
+
+    }
+
+    public void changeViewingPart(int position){
+        for(int i = 0 ; i < PartData.getNumParts();i++){
+            changePartState(i,BluetoothLeService.STATE_NORMAL);
+        }
+        if(position!=-1){
+            changePartState(position,BluetoothLeService.STATE_VIEWING);
+        }
+
+    }
     @Override
     protected void onResume() {
         super.onResume();
@@ -266,25 +301,19 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     }
 
     public void onPartSelected(int position){
+        if(mLossDetected){
+            return;
+        }
+        mPager.setVisibility(View.VISIBLE);
 
         if(position!=mPager.getCurrentItem()){
-            mPairingsController.setDeviceState(PartData.macAddressArray[mPager.getCurrentItem()],BluetoothLeService.STATE_NORMAL);
-            mMachineFeatureAdapter.notifyDataSetChanged();
+            changePartState(mPager.getCurrentItem(),BluetoothLeService.STATE_NORMAL);
         }
 
         mPager.setCurrentItem(position);
+        changePartState(position,BluetoothLeService.STATE_VIEWING);
+        activeFragment.resetDisplay();
 
-        /*demoPart = new DemoPart(position);
-
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.pop_enter,R.anim.exit);
-
-        activeFragment = new PartDetailFragment();
-        Bundle args = new Bundle();
-        args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
-        activeFragment.setArguments(args);
-        ft.replace(R.id.part_detail_container, activeFragment, "DETAIL_FRAG")
-                .commitAllowingStateLoss();*/
     }
     private void initBucketModel(IBucketConfig config){
 
@@ -373,19 +402,26 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
      * sequence.
      */
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+        private List<PartDetailFragment> fragmentList = new ArrayList<>();
+
         public ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
         public Fragment getItem(int position) {
-            PartDetailFragment fragment = new PartDetailFragment();
-            Bundle args = new Bundle();
-            args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
-            fragment.setArguments(args);
-
-            return fragment;
+            if(fragmentList.size()<=position) {
+                PartDetailFragment fragment = new PartDetailFragment();
+                Bundle args = new Bundle();
+                args.putInt(PartDetailFragment.ARG_ITEM_SELECTED, position);
+                fragment.setArguments(args);
+                fragmentList.add(position,fragment);
+                return fragment;
+            } else {
+                return fragmentList.get(position);
+            }
         }
+
 
         @Override
         public int getCount() {
@@ -394,11 +430,14 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     }
 
     public void reset(){
-        //Toast.makeText(this,"Reset", Toast.LENGTH_SHORT).show();
+        //mPager.setVisibility(View.INVISIBLE);
+        mResetButton.setVisibility(View.INVISIBLE);
+        mLossDetected = false;
         stopScanning();
-        removeFragment();
+        activeFragment.resetDisplay();
         map.clear();
         initializePairingModelForDemo();
+        beginScanning();
     }
 
     @Override
@@ -410,8 +449,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         unbindService(mServiceConnection);
     }
 
-    public void removeFragment() {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+/*    public void removeFragment() {
+        *//*FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.alert,R.anim.pop_exit);
 
         Fragment lossFragment = getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT");
@@ -419,12 +458,12 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
         if(!(lossFragment==null)) ft.remove(getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT"));
         if(!(detailFragment==null)) ft.remove(getSupportFragmentManager().findFragmentByTag("DETAIL_FRAG"));
-        ft.commit();
+        ft.commit();*//*
 
-        beginScanning();
+        //beginScanning();
 
 
-    }
+    }*/
     private void beginScanning() {
         led.setImageResource(R.drawable.green_led);
         mBluetoothLeService.scanForDevices(true);
@@ -457,21 +496,15 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     }
 
     public void alertLoss(Sensor lostSensor){
-        mPairingsController.setDeviceState(lostSensor.getMacAddress(),BluetoothLeService.STATE_LOSS_DETECTED);
-        mMachineFeatureAdapter.notifyDataSetChanged();
-
-        /*FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.alert,R.anim.pop_exit);
-
-        LossAlertFragment fragment = new LossAlertFragment();
-        Bundle args = new Bundle();
-        args.putInt(LossAlertFragment.ARG_ITEM_DETECTED, 1);
-        fragment.setArguments(args);
-        ft.replace(R.id.part_detail_container, fragment, "LOSS_ALERT_FRAGMENT")
-                .commitAllowingStateLoss();*/
-
+        mLossDetected = true;
+        int position = PartData.getPositionFromMacAddress(lostSensor.getMacAddress());
+        mPager.setCurrentItem(PartData.getPositionFromMacAddress(lostSensor.getMacAddress()));
         stopScanning();
         map.clear();
+        changePartState(position,BluetoothLeService.STATE_LOSS_DETECTED);
+        mPager.setVisibility(View.VISIBLE);
+        mResetButton.setVisibility(View.VISIBLE);
+        activeFragment.alertLoss();
 
     }
 
@@ -496,6 +529,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
                     break;
                 case DeviceScanCallback.DEVICE_SCAN_RESULT:
+                    if(mScrollState != ViewPager.SCROLL_STATE_IDLE){
+                        return;
+                    }
                     int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
                     String deviceName = intent.getStringExtra("name");
                     ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);

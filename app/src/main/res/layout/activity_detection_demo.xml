@@ -14,11 +14,24 @@
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
 
-        <android.support.v7.widget.Toolbar
+<!--        <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay" />-->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/footer_height"
+            android:gravity="center_vertical|center_horizontal"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="GET Detect"
+            android:textColor="@color/white"
+            android:background="@color/colorPrimary"
+            android:textSize="34sp"
+            android:elevation="8dp"
+            android:textStyle="italic|bold"
+            android:id="@+id/textView4" />
 
     </android.support.design.widget.AppBarLayout>
 
@@ -28,14 +41,14 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <include layout="@layout/part_list" />
+        <include layout="@layout/lip_and_part_layout" />
     </FrameLayout>
 
     <!-- Footer aligned to bottom -->
     <LinearLayout
         android:id="@+id/footer"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="@dimen/footer_height"
         android:orientation="horizontal"
         style="@style/AppTheme"
         android:background="@color/colorPrimary"
@@ -64,6 +77,19 @@
             android:layout_alignTop="@+id/textView3"
             android:layout_toEndOf="@+id/textView3"
             android:layout_marginStart="10dp" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="Reset"
+            android:gravity="right|center_vertical"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:id="@+id/textViewReset"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginStart="10dp"
+            android:visibility="invisible"/>
 
 
     </LinearLayout>
