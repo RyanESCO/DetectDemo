@@ -447,9 +447,12 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
             //check if the same position was pressed
 
-
-
             int swapPosition = getIndexfromArray(newDeviceName, deviceNameArray);
+
+            if (selectedPosition == swapPosition){
+                Toast.makeText(this, "That sensor is already in that position",Toast.LENGTH_SHORT).show();
+                return;
+            }
             String macAddressInSelectedPosition = macAddressArray[selectedPosition];
 
             //swap places in macAddressArray and DeviceNameArray
@@ -460,9 +463,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             macAddressArray[selectedPosition] = newMacAddress;
 
             PartDetailFragment fragment1 = mPagerAdapter.getItemByName(oldDeviceName);
-            fragment1.changeAssignedSensor(newDeviceName);
-
             PartDetailFragment fragment2 = mPagerAdapter.getItemByName(newDeviceName);
+
+            fragment1.changeAssignedSensor(newDeviceName);
             fragment2.changeAssignedSensor(oldDeviceName);
 
             Sensor device1 = new Sensor(newDeviceName);
@@ -494,6 +497,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         }
 
         mPagerAdapter.notifyDataSetChanged();
+        activeFragment = (PartDetailFragment) mPagerAdapter.getItem(selectedPosition);
 
     }
 
