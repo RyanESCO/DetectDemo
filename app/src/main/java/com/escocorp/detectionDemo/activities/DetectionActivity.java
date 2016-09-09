@@ -14,16 +14,14 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
+import android.preference.Preference;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +30,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
-
+import android.widget.Toast;
 
 import com.escocorp.detectionDemo.BluetoothLeService;
 import com.escocorp.detectionDemo.DeviceScanCallback;
@@ -45,6 +43,7 @@ import com.escocorp.detectionDemo.custom.IconSpinnerProgressDialog;
 import com.escocorp.detectionDemo.custom.PartDetailViewPager;
 import com.escocorp.detectionDemo.database.PartData;
 import com.escocorp.detectionDemo.fragments.PartDetailFragment;
+import com.escocorp.detectionDemo.fragments.SensorDialogFragment;
 import com.escocorp.detectionDemo.models.Bucket;
 import com.escocorp.detectionDemo.models.BucketConfig;
 import com.escocorp.detectionDemo.models.DemoPart;
@@ -62,7 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-public class DetectionActivity extends AppCompatActivity implements IPairingsListenerActivity{
+public class DetectionActivity extends AppCompatActivity implements IPairingsListenerActivity, SensorDialogFragment.SensorDialogFragmentListener{
 
     HalfBucketLayout shovelLayout;
     ArrayList<EscoPart> mParts;
@@ -73,6 +72,13 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     private PairingsController mPairingsController;
     private ImageView led;
     private TextView mResetButton;
+    private ImageView mHiddenResetButton;
+    Preference.OnPreferenceChangeListener mListener;
+
+    private String[] deviceNameArray;
+    private String[] macAddressArray;
+
+    private HashMap<String, String> allDevicesMap;
 
     public static final int MAX_SCAN_CYCLES = 100;
     public int numCycles;
@@ -83,13 +89,14 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     private ViewPager.OnPageChangeListener listener;
     private int mScrollState = ViewPager.SCROLL_STATE_IDLE;
 
-    private DemoPart demoPart;
+    private DemoPart currentDisplayPart;
     private boolean mLossDetected = false;
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String SAVED_STATE = "saved_State";
 
     public static final String ACTION_BLUETOOTH_SVC_BOUND = "com.escocorp.ACTION_BLUETOOTH_SVC_BOUND";
+    boolean mBound = false;
 
     PartDetailFragment mFragment;
     //InventorySummaryFragment mSummaryFragment;
@@ -109,6 +116,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mBluetoothLeService = null;
+            mBound = false;
         }
     };
 
@@ -118,10 +126,15 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             final String action = intent.getAction();
             if (DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND.equals(action)) {
                 //Toast.makeText(getApplicationContext(),"SERVICE BOUND",Toast.LENGTH_SHORT).show();
+                mBound = true;
                 beginScanning();
             }
         }
     };
+
+    public HashMap<String, String> getAllDevicesMap(){
+        return allDevicesMap;
+    }
 
     private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -144,7 +157,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                     return;
                 }
                 Sensor lostSensor = map.get(name);
-                alertLoss(lostSensor);
+                if(null!=lostSensor){
+                    alertLoss(lostSensor);
+                }
 
             }
         }
@@ -161,6 +176,15 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        PartData.initializeSensorData(this);
+
+        mListener = new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                Log.d("RCD","PREF CHANGED");
+                return false;
+            }
+        };
 
         mResetButton = (TextView) findViewById(R.id.textViewReset);
         mResetButton.setOnClickListener(new View.OnClickListener() {
@@ -170,7 +194,17 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             }
         });
 
+        mHiddenResetButton = (ImageView) findViewById(R.id.logo);
+        mHiddenResetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopScanning();
+                beginScanning();
+            }
+        });
+
         map = new HashMap<>();
+        allDevicesMap = new HashMap<>();
         numCycles = 0;
 
         mParts = new ArrayList<EscoPart>();
@@ -197,7 +231,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             @Override
             public void onPageSelected(int position) {
                 changeViewingPart(position);
-                demoPart = new DemoPart(position);
+                currentDisplayPart = new DemoPart(position);
                 activeFragment = (PartDetailFragment) mPagerAdapter.getItem(position);
             }
 
@@ -220,6 +254,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mPairingsController = new PairingsController(this);
         mMachineFeatureAdapter = new MachineFeatureAdapter(this, mPairingsController);
         initBucketModel(new BucketConfig(3, 2, 2, 0));
+
+        deviceNameArray = new String[PartData.getNumParts()];
+        macAddressArray = new String[PartData.getNumParts()];
+
         initializePairingModelForDemo();
         shovelLayout.setAdapter(mMachineFeatureAdapter);
         mMachineFeatureAdapter.notifyDataSetChanged();
@@ -248,6 +286,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         progressDialog = new IconSpinnerProgressDialog(this);
         progressDialog.setIndeterminate(true);
 
+
+
     }
 
     public BluetoothLeService getBLEService(){
@@ -258,7 +298,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         if(position==-1){
             return;
         }
-        mPairingsController.setDeviceState(PartData.macAddressArray[position],state);
+        mPairingsController.setDeviceState(macAddressArray[position],state);
         mMachineFeatureAdapter.notifyDataSetChanged();
 
     }
@@ -312,7 +352,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
         mPager.setCurrentItem(position);
         changePartState(position,BluetoothLeService.STATE_VIEWING);
-        activeFragment.resetDisplay();
+        if (activeFragment != null) activeFragment.resetDisplay();
 
     }
     private void initBucketModel(IBucketConfig config){
@@ -397,10 +437,76 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         }
     }
 
-    /**
-     * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
-     * sequence.
-     */
+    @Override
+    public void onDialogPositiveClick(SensorDialogFragment dialog, String newDeviceName, String newMacAddress) {
+
+        String oldDeviceName = dialog.getOldDeviceName();
+        int selectedPosition = getIndexfromArray(oldDeviceName, deviceNameArray);
+
+        if(map.containsKey(newDeviceName)){
+
+            //check if the same position was pressed
+
+
+
+            int swapPosition = getIndexfromArray(newDeviceName, deviceNameArray);
+            String macAddressInSelectedPosition = macAddressArray[selectedPosition];
+
+            //swap places in macAddressArray and DeviceNameArray
+            deviceNameArray[swapPosition] = oldDeviceName;
+            macAddressArray[swapPosition] = macAddressInSelectedPosition;
+
+            deviceNameArray[selectedPosition] = newDeviceName;
+            macAddressArray[selectedPosition] = newMacAddress;
+
+            PartDetailFragment fragment1 = mPagerAdapter.getItemByName(oldDeviceName);
+            fragment1.changeAssignedSensor(newDeviceName);
+
+            PartDetailFragment fragment2 = mPagerAdapter.getItemByName(newDeviceName);
+            fragment2.changeAssignedSensor(oldDeviceName);
+
+            Sensor device1 = new Sensor(newDeviceName);
+            device1.setMacAddress(newMacAddress);
+
+            Sensor device2 = new Sensor(oldDeviceName);
+            device2.setMacAddress(macAddressInSelectedPosition);
+
+            mPairingsController.assignPosition(device1, selectedPosition);
+            mPairingsController.assignPosition(device2, swapPosition);
+
+        } else {
+
+            map.remove(oldDeviceName);
+
+            //swap out info in macAddressArray and DeviceNameArray
+
+            deviceNameArray[selectedPosition] = newDeviceName;
+            macAddressArray[selectedPosition] = newMacAddress;
+
+            Sensor device = new Sensor(newDeviceName);
+            device.setMacAddress(newMacAddress);
+            map.put(newDeviceName,device);
+
+            mPairingsController.assignPosition(device, selectedPosition);
+
+            PartDetailFragment fragment = mPagerAdapter.getItemByName(oldDeviceName);
+            fragment.changeAssignedSensor(newDeviceName);
+        }
+
+        mPagerAdapter.notifyDataSetChanged();
+
+    }
+
+    private int getIndexfromArray(String input, String[] stringArray){
+        for (int i=0; i < stringArray.length;i++){
+            if(stringArray[i].equals(input)){
+                return i;
+            }
+
+        }
+        return -1;
+    }
+
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
         private List<PartDetailFragment> fragmentList = new ArrayList<>();
 
@@ -427,6 +533,15 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         public int getCount() {
             return PartData.getNumParts();
         }
+
+        public PartDetailFragment getItemByName(String deviceName) {
+            for(int i =0; i < fragmentList.size();i++){
+                if (deviceName.equals(fragmentList.get(i).getDeviceName())){
+                    return fragmentList.get(i);
+                }
+            }
+            return null;
+        }
     }
 
     public void reset(){
@@ -446,32 +561,24 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         unregisterReceiver(mDeviceScanReceiver);
         unregisterReceiver(mBlueToothServiceReceiver);
 
-        unbindService(mServiceConnection);
+        if(mBound) unbindService(mServiceConnection);
     }
 
-/*    public void removeFragment() {
-        *//*FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.alert,R.anim.pop_exit);
-
-        Fragment lossFragment = getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT");
-        Fragment detailFragment = getSupportFragmentManager().findFragmentByTag("DETAIL_FRAG");
-
-        if(!(lossFragment==null)) ft.remove(getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT"));
-        if(!(detailFragment==null)) ft.remove(getSupportFragmentManager().findFragmentByTag("DETAIL_FRAG"));
-        ft.commit();*//*
-
-        //beginScanning();
-
-
-    }*/
     private void beginScanning() {
-        led.setImageResource(R.drawable.green_led);
-        mBluetoothLeService.scanForDevices(true);
+        if(mBound){
+            led.setImageResource(R.drawable.green_led);
+            mBluetoothLeService.scanForDevices(true);
+        } else {
+
+        }
+
     }
 
     private void stopScanning(){
-        led.setImageResource(R.drawable.red_led);
-        mBluetoothLeService.scanForDevices(false);
+        if(mBound){
+            led.setImageResource(R.drawable.red_led);
+            mBluetoothLeService.scanForDevices(false);
+        }
     }
 
     @Override
@@ -482,13 +589,18 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     private void initializePairingModelForDemo(){
 
         //Bucket pairingModel = mPairingsController.getPairingModel();
-        int totalPositions = PartData.deviceNameArray.length;
+        int totalPositions = PartData.getNumParts();
         for(int position = 0; position < totalPositions; position++){
-            Sensor device = new Sensor(PartData.deviceNameArray[position]);
-            device.setMacAddress(PartData.macAddressArray[position]);
+            Sensor device = new Sensor(PartData.initialDeviceNameArray[position]);
+            device.setMacAddress(PartData.initialMacAddressArray[position]);
             //IMachineFeature machineFeature = pairingModel.getFeatures().get(position);
             mPairingsController.assignPosition(device, position);
             mPairingsController.setDeviceState(device.getMacAddress(),BluetoothLeService.STATE_NORMAL);
+            map.put(device.getName(),device);
+
+            macAddressArray[position] = device.getMacAddress();
+            deviceNameArray[position] = device.getName();
+
         }
 
         mMachineFeatureAdapter.notifyDataSetChanged();
@@ -497,8 +609,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
     public void alertLoss(Sensor lostSensor){
         mLossDetected = true;
-        int position = PartData.getPositionFromMacAddress(lostSensor.getMacAddress());
-        mPager.setCurrentItem(PartData.getPositionFromMacAddress(lostSensor.getMacAddress()));
+        int position = getPositionFromMacAddress(lostSensor.getMacAddress());
+        mPager.setCurrentItem(getPositionFromMacAddress(lostSensor.getMacAddress()));
         stopScanning();
         map.clear();
         changePartState(position,BluetoothLeService.STATE_LOSS_DETECTED);
@@ -506,6 +618,15 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mResetButton.setVisibility(View.VISIBLE);
         activeFragment.alertLoss();
 
+    }
+
+    public int getPositionFromMacAddress(String macAddress){
+        for(int i=0; i < PartData.getNumParts();i++){
+            if(macAddress.equals(macAddressArray[i])){
+                return i;
+            }
+        }
+        return -1;
     }
 
     private final BroadcastReceiver mDeviceScanReceiver = new BroadcastReceiver() {
@@ -535,18 +656,26 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                     int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
                     String deviceName = intent.getStringExtra("name");
                     ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
-                    if (demoPart!=null && deviceName.equals(demoPart.getDeviceName())) {
+                    if (currentDisplayPart !=null && deviceName.equals(currentDisplayPart.getDeviceName())) {
                         activeFragment.addChartDataPoint(RSSI);
                         Log.d("RCD1","match: " + deviceName);
+                    } else {
+                        //testing
+                        PartDetailFragment fragment = mPagerAdapter.getItemByName(deviceName);
+                                if(fragment!=null) fragment.addChartDataPoint(RSSI);
                     }
 
-                    Sensor sensor = (Sensor)intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
+                    Sensor sensor = intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
                     sensor.updateSensor(result,context);
                     if(!map.containsKey(deviceName)){
-                        map.put(deviceName,sensor);
+                       //ignore non-configured BLE devices
                     } else {
                         Sensor sensorToModify = map.get(deviceName);
                         sensorToModify.updateSensor(result,context);
+                    }
+
+                    if(!allDevicesMap.containsKey(deviceName)&&deviceName.startsWith("ESCO")){
+                        allDevicesMap.put(deviceName,sensor.getMacAddress());
                     }
 
                     break;
@@ -561,7 +690,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mServiceConnection);
         mBluetoothLeService = null;
     }
 }

@@ -3,6 +3,7 @@ package com.escocorp.detectionDemo.adapters;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.escocorp.detectionDemo.BluetoothLeService;
 import com.escocorp.detectionDemo.IDeviceSelectionListener;
@@ -148,8 +149,10 @@ public class PairingsController implements IDeviceSelectionListener, IFeatureSel
 
         if (feature.isBLEComponent()) {
             feature.setSensor(device);
-            feature.setState(MachineFeature.STATE_ASSIGNED);
+            //feature.setState(MachineFeature.STATE_ASSIGNED);
             notifyChangeListeners();
+        } else {
+            Log.d("RCD","feauture is not BLE Component");
         }
 
     }

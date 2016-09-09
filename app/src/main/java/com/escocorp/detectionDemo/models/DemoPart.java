@@ -33,10 +33,14 @@ public class DemoPart {
     }
 
     public DemoPart(int index){
-        this.deviceName = PartData.deviceNameArray[index];
+        this.deviceName = PartData.initialDeviceNameArray[index];
         this.productType = PartData.productTypeArray[index];
         this.installationDate = PartData.installationDateArray[index];
         this.usage = PartData.usageArray[index];
         this.position = index;
+    }
+
+    public void changeDeviceName(String newName){
+        this.deviceName = newName;
     }
 }

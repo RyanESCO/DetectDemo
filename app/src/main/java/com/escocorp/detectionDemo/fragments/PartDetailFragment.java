@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.escocorp.detectionDemo.R;
 import com.escocorp.detectionDemo.activities.DetectionActivity;
+import com.escocorp.detectionDemo.database.PartData;
 import com.escocorp.detectionDemo.models.DemoPart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
@@ -33,6 +34,8 @@ public class PartDetailFragment extends Fragment {
     public TextView mDescription;
     public TextView mAgileNumber;
     public TextView mSensorName;
+
+    private DetectionActivity activity;
 
     private DemoPart demoPart;
 
@@ -58,6 +61,8 @@ public class PartDetailFragment extends Fragment {
 
         }
 
+        activity = (DetectionActivity)getActivity();
+
     }
 
     @Override
@@ -76,21 +81,35 @@ public class PartDetailFragment extends Fragment {
         TextView textViewPosition = (TextView) mRootView.findViewById(R.id.textViewPosition);
         mLossFrameLayout = (FrameLayout) mRootView.findViewById(R.id.frameLayoutLoss);
 
-        mDescription = (TextView) mRootView.findViewById(R.id.textViewPartDescription);
+        /*mDescription = (TextView) mRootView.findViewById(R.id.textViewPartDescription);
         mAgileNumber = (TextView) mRootView.findViewById(R.id.textViewAgileNumber);
-        mSensorName = (TextView) mRootView.findViewById(R.id.textViewSensorNumber);
+        mSensorName = (TextView) mRootView.findViewById(R.id.textViewSensorNumber);*/
 
         textViewDeviceName.setText(demoPart.getDeviceName());
         textViewProductType.setText(demoPart.getProductType());
         textViewInstallationDate.setText(demoPart.getInstallationDate());
         textViewUsage.setText(demoPart.getUsage());
         textViewPosition.setText(String.valueOf(itemSelected));
+        imageViewPartImage.setImageResource(PartData.getImageId(getActivity(),PartData.imageArray[itemSelected]));
 
         mChart = (LineChart) mRootView.findViewById(R.id.chart1);
         mChart.setDescription("Sensor Heartbeat");
         mChart.setNoDataTextDescription("Waiting for Device Data Broadcast");
 
         initializeChart();
+
+        textViewDeviceName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //launch BLE device chooser dialog
+                SensorDialogFragment newFragment = new SensorDialogFragment();
+                Bundle args = new Bundle();
+                args.putSerializable("all_devices",activity.getAllDevicesMap());
+                args.putString("old_device_name",demoPart.getDeviceName());
+                newFragment.setArguments(args);
+                newFragment.show(activity.getSupportFragmentManager(),"device_chooser");
+            }
+        });
 
         return mRootView;
     }
@@ -101,6 +120,9 @@ public class PartDetailFragment extends Fragment {
         Log.d("LifeCycle","onResume");
     }
 
+    public String getDeviceName(){
+        return demoPart.getDeviceName();
+    }
     private void initializeChart(){
         Log.d("LifeCycle","initializeChart");
         data = new LineData();
@@ -134,6 +156,13 @@ public class PartDetailFragment extends Fragment {
 
     }
 
+    public void changeAssignedSensor(String deviceName){
+        TextView textViewDeviceName = (TextView) mRootView.findViewById(R.id.textViewDeviceName);
+        textViewDeviceName.setText(deviceName);
+
+        demoPart.changeDeviceName(deviceName);
+
+    }
     public void addChartDataPoint(int rssi){
         if(data==null){
             return;  //temporary workaround for null pointer error

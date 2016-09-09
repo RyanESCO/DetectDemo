@@ -25,7 +25,7 @@ public class Sensor implements ISensor, Parcelable {
     private transient String name;
     private transient int bluetoothType;
     private transient int featureType = 0;
-    private double threshold = 0.4;
+    private double threshold = 0.2;
     private int rssi;
     private int averageRssi;
     private Point3D averageAcceleration;
@@ -107,7 +107,7 @@ public class Sensor implements ISensor, Parcelable {
 
     }
 
-    public Point3D getStandardDeviationOfNewData(Point3D newData){
+/*    public Point3D getStandardDeviationOfNewData(Point3D newData){
         Point3D averageValues = calculateAverageAcceleration();
         Point3D sumErrorSquared = new Point3D(0,0,0);
         for(Point3D data: accelerationHistory){
@@ -125,7 +125,7 @@ public class Sensor implements ISensor, Parcelable {
                 Math.pow(sumErrorSquared.z,0.5));
 
         return standardDeviation;
-    }
+    }*/
 
     public int getAverageRssi(){
         return averageRssi;

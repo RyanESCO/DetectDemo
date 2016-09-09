@@ -1,8 +1,7 @@
 package com.escocorp.detectionDemo.database;
 
-import com.escocorp.detectionDemo.models.DemoPart;
-
-import java.util.ArrayList;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 /**
  * Created by Ryan Dymock on 8/9/2016.
@@ -12,35 +11,54 @@ public class PartData {
     /*public static ArrayList<DemoParts> partsArrayList = new ArrayList<DemoParts>();*/
 
     public static int getNumParts(){
-        return deviceNameArray.length;
+        return initialDeviceNameArray.length;
     }
 
-    public static int getPositionFromMacAddress(String macAddress){
-        for(int i=0; i < getNumParts();i++){
-            if(macAddress.equals(macAddressArray[i])){
-                return i;
-            }
+    public static int getImageId(Context context, String imageName) {
+        return context.getResources().getIdentifier("drawable/" + imageName, null, context.getPackageName());
+    }
+
+    public static void initializeSensorData(Context context){
+        SharedPreferences prefs = context.getSharedPreferences("sensorArray",Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
+        for(int i = 0; i < getNumParts(); i ++){
+            editor.putString(initialDeviceNameArray[i], initialMacAddressArray[i]);
         }
-        return -1;
+
+        editor.commit();
+
     }
 
-    public static final String[] deviceNameArray = {
-            "ESCO#00248",
-            "ESCO#00191",
-            "ESCO#00243",
-            "ESCO#00998",
-            "ESCO#00214",
-            "ESCO#00235",
-            "ESCO#00999"};
 
-    public static final String[] macAddressArray = {
-            "00:07:80:15:37:C9",
+
+    public static final String[] initialDeviceNameArray = {
+            "ESCO#00222",
+            "ESCO#00191",
+            "ESCO#00232",
+            "ESCO#00218",
+            "ESCO#00238",
+            "ESCO#00243",
+            "ESCO#00245"};
+
+    public static final String[] initialMacAddressArray = {
+            "00:07:80:15:2E:32",
             "00:07:80:15:2E:11",
+            "00:07:80:15:41:EA",
+            "00:07:80:C0:6E:70",
+            "00:07:80:15:2E:1F",
             "00:07:80:15:2E:3E",
-            "00:07:80:15:XX:XX",
-            "00:07:80:15:2E:3D",
-            "00:07:80:15:37:B0",
-            "00:07:80:15:ZZ:ZZ"};
+            "00:07:80:C0:6E:56"};
+
+    public static final String[] imageArray = {
+            "point_hq",
+            "shroud_hq",
+            "point_hq",
+            "shroud_hq",
+            "point_hq",
+            "lower_wing_shroud_hq",
+            "wing_shroud_hq"
+    };
 
     public static final String[] productTypeArray = {
             "N3R Point",
@@ -60,7 +78,7 @@ public class PartData {
             "8/31/2016",
             "8/31/2016"
             };
-
+    
     public static final String[] usageArray= {
             "8",
             "180",
@@ -70,14 +88,14 @@ public class PartData {
             "260",
             "260"};
 
-/*    public static final String[] deviceNameArray = {
+/*    public static final String[] initialDeviceNameArray = {
             "ESCO#00191",
             "ESCO#00238",
             "ESCO#00243",
             "ESCO#00245",
             "ESCO#00248"};
 
-    public static final String[] macAddressArray = {
+    public static final String[] initialMacAddressArray = {
             "00:07:80:15:2E:11",
             "00:07:80:15:2E:1F",
             "00:07:80:15:2E:3E",

@@ -63,8 +63,8 @@ public class DeviceScanCallback extends ScanCallback {
         return new Point3D((x / SCALE) * -1, y / SCALE, (z / SCALE) * -1);
     }
 
-    final ArrayList<String> mDiscoveredDeviceAddresses = new ArrayList<String>();
-    final HashMap<String, Sensor> mSensorMap = new HashMap<>();
+/*    final ArrayList<String> mDiscoveredDeviceAddresses = new ArrayList<String>();
+    final HashMap<String, Sensor> mSensorMap = new HashMap<>();*/
     final Context mContext;
 
     public DeviceScanCallback(Context context){
@@ -84,7 +84,9 @@ public class DeviceScanCallback extends ScanCallback {
 
         final BluetoothDevice device = result.getDevice();
         //we only care about BLE so pare out other bluetooth types
-        if(device.getType()==BluetoothDevice.DEVICE_TYPE_LE||device.getType()==BluetoothDevice.DEVICE_TYPE_UNKNOWN) {
+        if(device.getType()==BluetoothDevice.DEVICE_TYPE_LE||
+                device.getType()==BluetoothDevice.DEVICE_TYPE_UNKNOWN||
+                device.getType()==BluetoothDevice.DEVICE_TYPE_DUAL) {
             /*final ISensor sensor = new Sensor(result.getDevice());
             mDiscoveredDevices.add(sensor.getMacAddress());
             //Send a broadcast to main part of the app to alert it to new found device
@@ -98,7 +100,7 @@ public class DeviceScanCallback extends ScanCallback {
             Log.d("RCD1","OnScanResult " + deviceName);
             Log.d("RCD",sensor.getName() + " at " + String.valueOf(sensor.getRssi()) + "db");
 
-            if(!mSensorMap.containsKey(sensor.getName())) {
+            /*if(!mSensorMap.containsKey(sensor.getName())) {
                 mSensorMap.put(sensor.getName(),sensor);
             }
             else {
@@ -108,7 +110,7 @@ public class DeviceScanCallback extends ScanCallback {
 
             if(!mDiscoveredDeviceAddresses.contains(device.getAddress())){
                 mDiscoveredDeviceAddresses.add(sensor.getMacAddress());
-            }
+            }*/
 
             //Send a broadcast to main part of the app to alert it to new found device
             final Intent broadcast = new Intent(DEVICE_SCAN_RESULT);
