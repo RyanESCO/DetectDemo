@@ -61,6 +61,7 @@ public class Sensor implements ISensor, Parcelable {
             return;
         }
         Point3D newData = accelerationHistory.get(accelerationHistory.size()-1);
+
         if(Math.abs(newData.x-averageAcceleration.x)>threshold || Math.abs(newData.y-averageAcceleration.y)>threshold || Math.abs(newData.z-averageAcceleration.z)>threshold){
             //alert
             //Send a broadcast to main part of the app to alert it to new found device

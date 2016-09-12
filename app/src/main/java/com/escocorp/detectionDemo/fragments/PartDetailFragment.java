@@ -31,9 +31,9 @@ public class PartDetailFragment extends Fragment {
     public static final String ARG_ITEM_SELECTED = "item_selected";
 
     private int itemSelected;
-    public TextView mDescription;
+    /*public TextView mDescription;
     public TextView mAgileNumber;
-    public TextView mSensorName;
+    public TextView mSensorName;*/
 
     private DetectionActivity activity;
 
@@ -93,7 +93,6 @@ public class PartDetailFragment extends Fragment {
         imageViewPartImage.setImageResource(PartData.getImageId(getActivity(),PartData.imageArray[itemSelected]));
 
         mChart = (LineChart) mRootView.findViewById(R.id.chart1);
-        mChart.setDescription("Sensor Heartbeat");
         mChart.setNoDataTextDescription("Waiting for Device Data Broadcast");
 
         initializeChart();
@@ -164,6 +163,7 @@ public class PartDetailFragment extends Fragment {
 
     }
     public void addChartDataPoint(int rssi){
+
         if(data==null){
             return;  //temporary workaround for null pointer error
         }
@@ -173,6 +173,11 @@ public class PartDetailFragment extends Fragment {
         if (set == null) {
             set = createSet();
             data.addDataSet(set);
+        }
+
+        if(itemSelected>4){
+            //if it's a wing shroud it's not being monitored
+            return;
         }
 
         if(set.getEntryCount() > 10){
@@ -259,7 +264,21 @@ public class PartDetailFragment extends Fragment {
 
     private LineDataSet createSet() {
 
-        LineDataSet set = new LineDataSet(null, "LIVE");
+        LineDataSet set;
+        if(itemSelected>4){
+            //if it's a wing shroud it's not being monitored
+            set = new LineDataSet(null, "OFFLINE");
+            set.setColor(ColorTemplate.rgb("#a1a1a1"));
+            set.setCircleColor(ColorTemplate.rgb("#a1a1a1"));
+            mChart.setDescription("Offline");
+        } else {
+            set = new LineDataSet(null, "LIVE");
+            set.setColor(ColorTemplate.getHoloBlue());
+            set.setCircleColor(ColorTemplate.getHoloBlue());
+            mChart.setDescription("Sensor Heartbeat");
+        }
+
+
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
         set.setColor(ColorTemplate.getHoloBlue());
         set.setCircleColor(ColorTemplate.getHoloBlue());

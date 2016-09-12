@@ -89,7 +89,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     private ViewPager.OnPageChangeListener listener;
     private int mScrollState = ViewPager.SCROLL_STATE_IDLE;
 
-    private DemoPart currentDisplayPart;
     private boolean mLossDetected = false;
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
@@ -231,7 +230,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             @Override
             public void onPageSelected(int position) {
                 changeViewingPart(position);
-                currentDisplayPart = new DemoPart(position);
                 activeFragment = (PartDetailFragment) mPagerAdapter.getItem(position);
             }
 
@@ -612,8 +610,13 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     }
 
     public void alertLoss(Sensor lostSensor){
-        mLossDetected = true;
         int position = getPositionFromMacAddress(lostSensor.getMacAddress());
+
+        if(position >4){
+            //don't alert wing shroud loss at MinEXPO
+            return;
+        }
+        mLossDetected = true;
         mPager.setCurrentItem(getPositionFromMacAddress(lostSensor.getMacAddress()));
         stopScanning();
         map.clear();
@@ -660,14 +663,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                     int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
                     String deviceName = intent.getStringExtra("name");
                     ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
-                    if (currentDisplayPart !=null && deviceName.equals(currentDisplayPart.getDeviceName())) {
-                        activeFragment.addChartDataPoint(RSSI);
-                        Log.d("RCD1","match: " + deviceName);
-                    } else {
-                        //testing
-                        PartDetailFragment fragment = mPagerAdapter.getItemByName(deviceName);
-                                if(fragment!=null) fragment.addChartDataPoint(RSSI);
-                    }
+                    PartDetailFragment fragment = mPagerAdapter.getItemByName(deviceName);
+                    if(fragment!=null) fragment.addChartDataPoint(RSSI);
 
                     Sensor sensor = intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
                     sensor.updateSensor(result,context);

@@ -16,6 +16,10 @@ public class DemoPart {
         return deviceName;
     }
 
+    public void setDeviceName(String name){
+        deviceName = name;
+    }
+
     public String getInstallationDate() {
         return installationDate;
     }

@@ -24,7 +24,7 @@ public class FeatureImageHelper {
             case MachineFeature.FEATURE_TYPE_SHROUD:
                 return directionUp? R.drawable.shroud_connected:R.drawable.shroud_connected_down;
             case MachineFeature.FEATURE_TYPE_WING_SHROUD:
-                return directionUp? R.drawable.wing_shroud_connected:R.drawable.wing_shroud_connected_down;
+                return directionUp? R.drawable.wing_shroud:R.drawable.wing_shroud_down;
             case MachineFeature.FEATURE_TYPE_BUCKET_MONITOR:
                 return directionUp? R.drawable.bucket_monitor_connected:R.drawable.bucket_monitor_connected;
             default:
@@ -39,7 +39,7 @@ public class FeatureImageHelper {
             case MachineFeature.FEATURE_TYPE_SHROUD:
                 return directionUp? R.drawable.shroud_connected:R.drawable.shroud_connected_down;
             case MachineFeature.FEATURE_TYPE_WING_SHROUD:
-                return directionUp? R.drawable.wing_shroud_connected:R.drawable.wing_shroud_connected_down;
+                return directionUp? R.drawable.wing_shroud:R.drawable.wing_shroud_down;
             case MachineFeature.FEATURE_TYPE_BUCKET_MONITOR:
                 return directionUp? R.drawable.bucket_monitor_connected:R.drawable.bucket_monitor_connected;
             default:
