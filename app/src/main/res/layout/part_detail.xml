@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:grid="http://schemas.android.com/tools"
     android:orientation="horizontal">
 
     <LinearLayout
@@ -31,7 +32,7 @@
 
 
     <GridLayout
-        android:layout_width="match_parent"
+        android:layout_width="350dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_margin="5dp"
@@ -40,71 +41,80 @@
 
         <TextView
             android:id="@+id/textViewProductType"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="N3R Point"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/textViewPosition"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="3"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
-            android:layout_marginBottom="5dp"
+            android:layout_marginBottom="15dp"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="DESCRIPTION"
+
             android:textSize="@dimen/grid_label_size" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="POSITION"
             android:textSize="@dimen/grid_label_size" />
 
         <TextView
             android:id="@+id/textViewInstallationDate"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="7/16/2016"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/textViewUsage"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="133 Hours"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:visibility="visible" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="INSTALLED"
             android:textSize="@dimen/grid_label_size" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
             android:gravity="center_horizontal"
+            grid:layout_gravity="fill_horizontal"
             android:text="USAGE (HRS)"
             android:textSize="@dimen/grid_label_size" />
     </GridLayout>

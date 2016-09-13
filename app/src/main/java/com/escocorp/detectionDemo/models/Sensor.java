@@ -1,18 +1,18 @@
 package com.escocorp.detectionDemo.models;
 
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
+import android.util.Log;
 
 import com.escocorp.detectionDemo.DeviceScanCallback;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Sensor implements ISensor, Parcelable {
@@ -62,11 +62,35 @@ public class Sensor implements ISensor, Parcelable {
         }
         Point3D newData = accelerationHistory.get(accelerationHistory.size()-1);
 
+/*        Log.d("RCD-ACCEL",name + " X: " + df.format(newData.x));
+        Log.d("RCD-ACCEL",name + " Y: " + df.format(newData.y));
+        Log.d("RCD-ACCEL",name + " Z: " + df.format(newData.z));*/
+
         if(Math.abs(newData.x-averageAcceleration.x)>threshold || Math.abs(newData.y-averageAcceleration.y)>threshold || Math.abs(newData.z-averageAcceleration.z)>threshold){
             //alert
             //Send a broadcast to main part of the app to alert it to new found device
+
+            //log acceleration history
+            String xValues = "X: ";
+            String yValues = "Y: ";
+            String zValues = "Z: ";
+
+            for(int i = 0; i < 5 || i < accelerationHistory.size();i++){
+                Point3D reading = accelerationHistory.get(i);
+
+                DecimalFormat df = new DecimalFormat("0.0#");
+
+                xValues += df.format(reading.x) +", ";
+                yValues += df.format(reading.y) +", ";
+                zValues += df.format(reading.z) +", ";
+
+            }
+
             final Intent broadcast = new Intent(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
             broadcast.putExtra("name",getName());
+            broadcast.putExtra("x_accel",xValues);
+            broadcast.putExtra("y_accel",yValues);
+            broadcast.putExtra("z_accel",zValues);
             LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
         }
     }

@@ -30,7 +30,7 @@ import java.util.concurrent.Semaphore;
 public class BluetoothLeService extends Service {
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
-    public static final int SCAN_LENGTH = 250; //1 secs
+    public static final int SCAN_LENGTH = 500;
 
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_LOSS_DETECTED = 1;
@@ -194,6 +194,12 @@ public class BluetoothLeService extends Service {
 
     //Function to scan for advertising BLE devices to connect to
     public boolean scanForDevices(boolean on){
+        //for Debugging
+        if(mBluetoothAdapter.getBluetoothLeScanner()==null){
+            Log.d("RCD","can't get the scanner");
+            return true;
+        }
+
         if(on){
             //Toast.makeText(getApplicationContext(),"start scan",Toast.LENGTH_SHORT).show();
 

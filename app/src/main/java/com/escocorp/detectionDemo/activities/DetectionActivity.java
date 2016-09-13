@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.preference.Preference;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -28,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,6 +59,7 @@ import com.escocorp.detectionDemo.models.Tooth;
 import com.escocorp.detectionDemo.models.WingShroud;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -64,41 +67,45 @@ import java.util.UUID;
 public class DetectionActivity extends AppCompatActivity implements IPairingsListenerActivity, SensorDialogFragment.SensorDialogFragmentListener{
 
     HalfBucketLayout shovelLayout;
-    ArrayList<EscoPart> mParts;
+    private ImageView led;
+    private TextView mResetButton;
+    private ImageView mHiddenResetButton;
+
+    PartDetailFragment activeFragment;
+    private PartDetailViewPager mPager;
+    private ScreenSlidePagerAdapter mPagerAdapter;
+
+    //Debugging variables
+    Chronometer c1, c2, c3, c4, c0;
+
+    Chronometer [] chronometers = new Chronometer[5];
+
 
     private HashMap<String, Sensor> map;
     protected IconSpinnerProgressDialog progressDialog;
     private MachineFeatureAdapter mMachineFeatureAdapter;
     private PairingsController mPairingsController;
-    private ImageView led;
-    private TextView mResetButton;
-    private ImageView mHiddenResetButton;
+
     Preference.OnPreferenceChangeListener mListener;
 
     private String[] deviceNameArray;
     private String[] macAddressArray;
-
-    private HashMap<String, String> allDevicesMap;
+    //ArrayList<EscoPart> mParts;
+    private HashMap<String, String> allDevicesMap;  //used to populate full BT list for BT chooser dialog
 
     public static final int MAX_SCAN_CYCLES = 100;
-    public int numCycles;
-
-    PartDetailFragment activeFragment;
-    private PartDetailViewPager mPager;
-    private ScreenSlidePagerAdapter mPagerAdapter;
-    private ViewPager.OnPageChangeListener listener;
-    private int mScrollState = ViewPager.SCROLL_STATE_IDLE;
-
-    private boolean mLossDetected = false;
-
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String SAVED_STATE = "saved_State";
-
     public static final String ACTION_BLUETOOTH_SVC_BOUND = "com.escocorp.ACTION_BLUETOOTH_SVC_BOUND";
+    private int mScrollState = ViewPager.SCROLL_STATE_IDLE;
+    private boolean mLossDetected = false;
+    public int numCycles;
+
+    private ViewPager.OnPageChangeListener listener;
+
     boolean mBound = false;
 
     PartDetailFragment mFragment;
-    //InventorySummaryFragment mSummaryFragment;
 
     protected BluetoothLeService mBluetoothLeService = null;
 
@@ -152,6 +159,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
             if(intent.getAction().equals(DeviceScanCallback.SIMULATED_LOSS_DETECTED)){
                 String name = intent.getStringExtra("name");
+                String xValues = intent.getStringExtra("x_accel");
+                String yValues = intent.getStringExtra("y_accel");
+                String zValues = intent.getStringExtra("z_accel");
                 if(map.size()==0 || getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT")!=null){
                     return;
                 }
@@ -176,6 +186,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         PartData.initializeSensorData(this);
+        initializeDebugging();
 
         mListener = new Preference.OnPreferenceChangeListener() {
             @Override
@@ -197,6 +208,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mHiddenResetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),"RESETTING",Toast.LENGTH_SHORT).show();
+                map.clear();
                 stopScanning();
                 beginScanning();
             }
@@ -206,7 +219,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         allDevicesMap = new HashMap<>();
         numCycles = 0;
 
-        mParts = new ArrayList<EscoPart>();
+        //mParts = new ArrayList<EscoPart>();
         //mPartsAdapter = new SimpleItemRecyclerViewAdapter(mParts);
 
         // Restore the previously serialized activated item position.
@@ -552,8 +565,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mLossDetected = false;
         stopScanning();
         activeFragment.resetDisplay();
-        map.clear();
-        initializePairingModelForDemo();
+        resetPairingModel();
+
+
         beginScanning();
     }
 
@@ -604,8 +618,39 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             deviceNameArray[position] = device.getName();
 
         }
-
         mMachineFeatureAdapter.notifyDataSetChanged();
+    }
+
+    private void resetPairingModel(){
+        //Bucket pairingModel = mPairingsController.getPairingModel();
+        map.clear();
+        int totalPositions = PartData.getNumParts();
+        for(int position = 0; position < totalPositions; position++){
+            Sensor device = new Sensor(deviceNameArray[position]);
+            device.setMacAddress(macAddressArray[position]);
+            //IMachineFeature machineFeature = pairingModel.getFeatures().get(position);
+            mPairingsController.assignPosition(device, position);
+            mPairingsController.setDeviceState(device.getMacAddress(),BluetoothLeService.STATE_NORMAL);
+            map.put(device.getName(),device);
+        }
+        mMachineFeatureAdapter.notifyDataSetChanged();
+
+    }
+
+    private void initializeDebugging(){
+        c0 = (Chronometer) findViewById(R.id.chrono0);
+        c0.start();
+        c1 = (Chronometer) findViewById(R.id.chrono1);
+        c1.start();
+        c2 = (Chronometer) findViewById(R.id.chrono2);
+        c2.start();
+        c3 = (Chronometer) findViewById(R.id.chrono3);
+        c3.start();
+        c4 = (Chronometer) findViewById(R.id.chrono4);
+        c4.start();
+
+        chronometers = new Chronometer[]{c0, c1,c2,c3, c4};
+
 
     }
 
@@ -623,6 +668,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         changePartState(position,BluetoothLeService.STATE_LOSS_DETECTED);
         mPager.setVisibility(View.VISIBLE);
         mResetButton.setVisibility(View.VISIBLE);
+        activeFragment = (PartDetailFragment) mPagerAdapter.getItem(position);
         activeFragment.alertLoss();
 
     }
@@ -657,9 +703,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
                     break;
                 case DeviceScanCallback.DEVICE_SCAN_RESULT:
-                    if(mScrollState != ViewPager.SCROLL_STATE_IDLE){
+                    /*if(mScrollState != ViewPager.SCROLL_STATE_IDLE){
                         return;
-                    }
+                    }*/
                     int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
                     String deviceName = intent.getStringExtra("name");
                     ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
@@ -675,9 +721,13 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                         sensorToModify.updateSensor(result,context);
                     }
 
+
                     if(!allDevicesMap.containsKey(deviceName)&&deviceName.startsWith("ESCO")){
                         allDevicesMap.put(deviceName,sensor.getMacAddress());
                     }
+
+                    int position = getPositionFromMacAddress(sensor.getMacAddress());
+                    if (position < 5 && position > -1) chronometers[position].setBase(SystemClock.elapsedRealtime());
 
                     break;
 
