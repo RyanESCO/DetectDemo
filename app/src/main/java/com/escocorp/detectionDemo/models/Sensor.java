@@ -1,5 +1,6 @@
 package com.escocorp.detectionDemo.models;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
@@ -46,6 +47,17 @@ public class Sensor implements ISensor, Parcelable {
 
     }
 
+    public Sensor(BluetoothDevice device, byte[]bytes){
+        setByteString(bytes);
+        this.macAddress = device.getAddress();
+        setName(device.getName());
+
+        if(name==null){
+            name="UNKNOWN";
+        }
+
+    }
+
     public Sensor(String name){
       setName(name);
     }
@@ -56,43 +68,62 @@ public class Sensor implements ISensor, Parcelable {
         setRssi(result.getRssi());
         setByteString(result.getScanRecord().getBytes());
 
-        if(accelerationHistory.size()<3){
+        if(accelerationHistory.size()>3){
             //wait to evaluate until enough data is collected
-            return;
+            checkForMotion(context);
         }
+    }
+
+    public void updateSensor(int RSSI, Context context){
+        setRssi(RSSI);
+        if(accelerationHistory.size()>3){
+            //wait to evaluate until enough data is collected
+            checkForMotion(context);
+        }
+    }
+
+    public void checkForMotion(Context context){
         Point3D newData = accelerationHistory.get(accelerationHistory.size()-1);
 
-/*        Log.d("RCD-ACCEL",name + " X: " + df.format(newData.x));
-        Log.d("RCD-ACCEL",name + " Y: " + df.format(newData.y));
-        Log.d("RCD-ACCEL",name + " Z: " + df.format(newData.z));*/
-
-        if(Math.abs(newData.x-averageAcceleration.x)>threshold || Math.abs(newData.y-averageAcceleration.y)>threshold || Math.abs(newData.z-averageAcceleration.z)>threshold){
+        if(Math.abs(newData.x-averageAcceleration.x)>threshold ||
+                Math.abs(newData.y-averageAcceleration.y)>threshold ||
+                Math.abs(newData.z-averageAcceleration.z)>threshold){
             //alert
             //Send a broadcast to main part of the app to alert it to new found device
 
-            //log acceleration history
-            String xValues = "X: ";
-            String yValues = "Y: ";
-            String zValues = "Z: ";
-
-            for(int i = 0; i < 5 || i < accelerationHistory.size();i++){
-                Point3D reading = accelerationHistory.get(i);
-
-                DecimalFormat df = new DecimalFormat("0.0#");
-
-                xValues += df.format(reading.x) +", ";
-                yValues += df.format(reading.y) +", ";
-                zValues += df.format(reading.z) +", ";
-
-            }
-
-            final Intent broadcast = new Intent(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
-            broadcast.putExtra("name",getName());
-            broadcast.putExtra("x_accel",xValues);
-            broadcast.putExtra("y_accel",yValues);
-            broadcast.putExtra("z_accel",zValues);
-            LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
+            alertMotion(context);
         }
+    }
+
+    public void alertMotion(Context context){
+        //log acceleration history
+        String xValues = "X: ";
+        String yValues = "Y: ";
+        String zValues = "Z: ";
+
+        for(int i = 0; i < 5 || i < accelerationHistory.size();i++){
+            Point3D reading = accelerationHistory.get(i);
+
+            DecimalFormat df = new DecimalFormat("0.0#");
+
+            xValues += df.format(reading.x) +", ";
+            yValues += df.format(reading.y) +", ";
+            zValues += df.format(reading.z) +", ";
+
+        }
+
+        DecimalFormat df = new DecimalFormat("0.0#");
+        Log.d("RCD-ACCEL",name + " X: " + xValues);
+        Log.d("RCD-ACCEL",name + " Y: " + yValues);
+        Log.d("RCD-ACCEL",name + " Z: " + zValues);
+
+        final Intent broadcast = new Intent(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
+        broadcast.putExtra("name",getName());
+        broadcast.putExtra("x_accel",xValues);
+        broadcast.putExtra("y_accel",yValues);
+        broadcast.putExtra("z_accel",zValues);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
+
     }
 
     public void setRssi(int rssi){

@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -297,8 +298,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         progressDialog = new IconSpinnerProgressDialog(this);
         progressDialog.setIndeterminate(true);
 
-
-
     }
 
     public BluetoothLeService getBLEService(){
@@ -550,6 +549,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         }
 
         public PartDetailFragment getItemByName(String deviceName) {
+            if(deviceName==null){
+                return null;
+            }
             for(int i =0; i < fragmentList.size();i++){
                 if (deviceName.equals(fragmentList.get(i).getDeviceName())){
                     return fragmentList.get(i);
@@ -564,7 +566,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mResetButton.setVisibility(View.INVISIBLE);
         mLossDetected = false;
         stopScanning();
-        activeFragment.resetDisplay();
+        if(activeFragment!=null) activeFragment.resetDisplay();
         resetPairingModel();
 
 
@@ -607,6 +609,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         //Bucket pairingModel = mPairingsController.getPairingModel();
         int totalPositions = PartData.getNumParts();
         for(int position = 0; position < totalPositions; position++){
+        //for(int position = 0; position < 1; position++){
             Sensor device = new Sensor(PartData.initialDeviceNameArray[position]);
             device.setMacAddress(PartData.initialMacAddressArray[position]);
             //IMachineFeature machineFeature = pairingModel.getFeatures().get(position);
@@ -708,17 +711,29 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                     }*/
                     int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
                     String deviceName = intent.getStringExtra("name");
+                    if(deviceName==null){
+                        return;
+                    }
                     ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
                     PartDetailFragment fragment = mPagerAdapter.getItemByName(deviceName);
                     if(fragment!=null) fragment.addChartDataPoint(RSSI);
 
                     Sensor sensor = intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
-                    sensor.updateSensor(result,context);
+                    if(result!=null){
+                        sensor.updateSensor(result,context);
+                    } else {
+                        sensor.updateSensor(RSSI, context);
+                    }
                     if(!map.containsKey(deviceName)){
                        //ignore non-configured BLE devices
                     } else {
                         Sensor sensorToModify = map.get(deviceName);
-                        sensorToModify.updateSensor(result,context);
+
+                        if(result!=null){
+                            sensorToModify.updateSensor(result,context);
+                        } else {
+                            sensorToModify.updateSensor(RSSI, context);
+                        }
                     }
 
 
@@ -727,7 +742,16 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                     }
 
                     int position = getPositionFromMacAddress(sensor.getMacAddress());
-                    if (position < 5 && position > -1) chronometers[position].setBase(SystemClock.elapsedRealtime());
+
+                    if(position < 5 && position > -1){
+                        long elapsedMillis = SystemClock.elapsedRealtime() - chronometers[position].getBase();
+                        if(elapsedMillis>4500){
+                            Log.d("RCD","delay: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+                        }
+                        chronometers[position].setBase(SystemClock.elapsedRealtime());
+                        Log.d("RCD","delay: " + String.valueOf(elapsedMillis) + "ms");
+
+                    }
 
                     break;
 
@@ -743,4 +767,5 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         super.onDestroy();
         mBluetoothLeService = null;
     }
+
 }

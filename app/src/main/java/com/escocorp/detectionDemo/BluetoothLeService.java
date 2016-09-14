@@ -12,11 +12,15 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.ParcelUuid;
 import android.util.Log;
 
 import com.escocorp.detectionDemo.bluetooth.BLECommand;
+import com.escocorp.detectionDemo.database.PartData;
+import com.escocorp.detectionDemo.models.Sensor;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -30,7 +34,7 @@ import java.util.concurrent.Semaphore;
 public class BluetoothLeService extends Service {
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
-    public static final int SCAN_LENGTH = 500;
+    public static final int SCAN_LENGTH = 125;
 
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_LOSS_DETECTED = 1;
@@ -174,6 +178,29 @@ public class BluetoothLeService extends Service {
 
         //clearConnections();
 
+        //init scan filter
+        ScanFilter filter = new ScanFilter.Builder().setDeviceAddress(
+                PartData.initialMacAddressArray[0])
+                .build();
+        scanFilters.add(filter);
+
+/*        filter = new ScanFilter.Builder().setDeviceAddress(
+                PartData.initialMacAddressArray[1])
+                .build();
+        scanFilters.add(filter);
+        filter = new ScanFilter.Builder().setDeviceAddress(
+                PartData.initialMacAddressArray[2])
+                .build();
+        scanFilters.add(filter);
+        filter = new ScanFilter.Builder().setDeviceAddress(
+                PartData.initialMacAddressArray[3])
+                .build();
+        scanFilters.add(filter);
+        filter = new ScanFilter.Builder().setDeviceAddress(
+                PartData.initialMacAddressArray[4])
+                .build();
+        scanFilters.add(filter);*/
+
         return true;
     }
 
@@ -194,64 +221,115 @@ public class BluetoothLeService extends Service {
 
     //Function to scan for advertising BLE devices to connect to
     public boolean scanForDevices(boolean on){
-        //for Debugging
-        if(mBluetoothAdapter.getBluetoothLeScanner()==null){
-            Log.d("RCD","can't get the scanner");
-            return true;
-        }
 
-        if(on){
-            //Toast.makeText(getApplicationContext(),"start scan",Toast.LENGTH_SHORT).show();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 
-            //Turn scanning on
-            if(!isScanningDevices()){
-                Log.d("BT Test","scanning started");
+            if(on){
+                //Toast.makeText(getApplicationContext(),"start scan",Toast.LENGTH_SHORT).show();
 
-                ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
-                scanSettingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
-                scanSettings = scanSettingsBuilder.build();
+                /*//for Debugging
+                if(mBluetoothAdapter.getBluetoothLeScanner()==null){
+                    Log.d("RCD","can't get the scanner");
+                    Log.d("RCD","enabled? " + String.valueOf(mBluetoothAdapter.isEnabled()));
+                    if(!mBluetoothAdapter.isEnabled()) mBluetoothAdapter.enable();
+                    return startScanUsingOldApi(on);
 
-                mScanCallback = new DeviceScanCallback(this);
-                //Look for Devices with a standard DEVICE_INFORMATION service
+                }*/
 
-                //in case bluetooth is off, turn it on
-                mBluetoothAdapter.enable();
-                //mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
-                mBluetoothAdapter.getBluetoothLeScanner().startScan(scanFilters, scanSettings, mScanCallback);
-                Log.d("BT TEST","scanning for " + String.valueOf(SCAN_LENGTH)+ " milliseconds");
-                //Ensure we won't Scan forever (save battery)
-                numCycles ++;
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(isScanningDevices()){
-                            scanForDevices(false);
-                            Log.d("RCD","scanning stopped");
-                            //let listeners know the scan is done
-                            sendBroadcast(DeviceScanCallback.DEVICE_SCAN_COMPLETE);
-                        } /*else {
-                            Log.d("BT TEST","scan again");
-                            //stop previous scan
-                            if(mScanCallback!=null){
-                                mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback); //stopLeScan(mScanCallback);
-                                mScanCallback = null;
+                //Turn scanning on
+                if(!isScanningDevices()){
+                    //Log.d("RCD","scanning started");
+
+                    ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
+                    scanSettingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+                    scanSettings = scanSettingsBuilder.build();
+
+                    mScanCallback = new DeviceScanCallback(this);
+                    //Look for Devices with a standard DEVICE_INFORMATION service
+
+                    //in case bluetooth is off, turn it on
+                    if(!mBluetoothAdapter.isEnabled()) mBluetoothAdapter.enable();
+                    //mBluetoothAdapter.getBluetoothLeScanner().startScan(mScanCallback);
+                    mBluetoothAdapter.getBluetoothLeScanner().startScan(scanFilters, scanSettings, mScanCallback);
+                    //Log.d("RCD","scanning for " + String.valueOf(SCAN_LENGTH)+ " milliseconds");
+                    //Ensure we won't Scan forever (save battery)
+                    numCycles ++;
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(isScanningDevices()){
+                                scanForDevices(false);
+                                //Log.d("RCD","scanning stopped");
+                                //let listeners know the scan is done
+                                sendBroadcast(DeviceScanCallback.DEVICE_SCAN_COMPLETE);
+                            } else {
+                                Log.d("BT TEST","scan again");
+                                //stop previous scan
+                                if(mScanCallback!=null){
+                                    mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback); //stopLeScan(mScanCallback);
+                                    mScanCallback = null;
+                                }
+
+                                scanForDevices(true);
                             }
 
-                            scanForDevices(true);
-                        }*/
+                        }
+                    }, SCAN_LENGTH);
 
-                    }
-                }, SCAN_LENGTH);
+                }
+            }else{
+                //Turn scanning off
+                //Toast.makeText(getApplicationContext(),"stop scan",Toast.LENGTH_SHORT).show();
+                if(isScanningDevices() && mBluetoothAdapter.getBluetoothLeScanner()!=null){
+                    mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback); //stopLeScan(mScanCallback);
+                    mScanCallback = null;
+                }
+            }
+            return true;
 
-            }
-        }else{
-            //Turn scanning off
-            //Toast.makeText(getApplicationContext(),"stop scan",Toast.LENGTH_SHORT).show();
-            if(isScanningDevices()){
-                mBluetoothAdapter.getBluetoothLeScanner().stopScan(mScanCallback); //stopLeScan(mScanCallback);
-                mScanCallback = null;
-            }
+        } else {
+            return startScanUsingOldApi(on);
+
         }
+
+
+
+
+    }
+
+    public boolean startScanUsingOldApi(boolean on){
+        if(on){
+            BluetoothAdapter.LeScanCallback startScanCallBack = new BluetoothAdapter.LeScanCallback() {
+                @Override
+                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    final Sensor sensor = new Sensor(device, scanRecord);
+                    String deviceName = sensor.getName();
+
+                    //Send a broadcast to main part of the app to alert it to new found device
+                    final Intent broadcast = new Intent(DeviceScanCallback.DEVICE_SCAN_RESULT);
+                    broadcast.putExtra(DeviceScanCallback.EXTRA_ADDRESS, device.getAddress());
+                    broadcast.putExtra(DeviceScanCallback.EXTRA_DEVICE, sensor);
+                    //broadcast.putExtra(DeviceScanCallback.EXTRA_SCAN_RESULT,result);
+                    broadcast.putExtra("name",deviceName);
+                    broadcast.putExtra(DeviceScanCallback.RSSI,rssi);
+                    sendBroadcast(broadcast);
+
+
+
+
+                }
+            };
+            mBluetoothAdapter.startLeScan(startScanCallBack);
+        } else {
+            BluetoothAdapter.LeScanCallback stopScanCallBack = new BluetoothAdapter.LeScanCallback() {
+                @Override
+                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    Log.d("RCD","Stop callback");
+                }
+            };
+            mBluetoothAdapter.stopLeScan(stopScanCallBack);
+        }
+
         return true;
     }
 

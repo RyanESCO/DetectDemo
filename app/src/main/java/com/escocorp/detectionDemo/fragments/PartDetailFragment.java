@@ -181,14 +181,14 @@ public class PartDetailFragment extends Fragment {
         }
 
         if(set.getEntryCount() > 10){
-            Log.d("RCDcount","greater than 10");
+            //Log.d("RCDcount","greater than 10");
             set = rippleData(set);
             set.addEntry(new Entry(10,(float)rssi));
         } else {
             set.addEntry(new Entry(set.getEntryCount(), (float) rssi));
         }
 
-        Log.d("RCDcount","number of points: " + String.valueOf(set.getEntryCount()));
+        //Log.d("RCDcount","number of points: " + String.valueOf(set.getEntryCount()));
         data.removeDataSet(0);
         data.addDataSet(set);
 

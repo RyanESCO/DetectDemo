@@ -32,7 +32,7 @@ public class Utils {
     /**
      * Returns a string composed from a {@link SparseArray}.
      */
-    static String toString(SparseArray<byte[]> array) {
+    public static String toString(SparseArray<byte[]> array) {
         if (array == null) {
             return "null";
         }

@@ -17,7 +17,7 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/sensor_list_recyler_view"
-        android:name="com.escocorp.escosmartinventory.PartListFragment"
+        android:name="com.escocorp.detectionDemo.PartListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="16dp"
