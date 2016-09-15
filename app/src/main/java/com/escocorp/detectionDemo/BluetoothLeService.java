@@ -20,6 +20,8 @@ import android.util.Log;
 
 import com.escocorp.detectionDemo.bluetooth.BLECommand;
 import com.escocorp.detectionDemo.database.PartData;
+import com.escocorp.detectionDemo.models.Point3D;
+import com.escocorp.detectionDemo.models.ScanRecord;
 import com.escocorp.detectionDemo.models.Sensor;
 
 import java.util.ArrayList;
@@ -63,6 +65,7 @@ public class BluetoothLeService extends Service {
     DeviceScanCallback mScanCallback;
     private ScanSettings scanSettings;
     private List<ScanFilter> scanFilters = new ArrayList<ScanFilter>();
+    private ArrayList<String> macAddressFilterList = new ArrayList<>();
 
     BluetoothManager mBluetoothManager;
     BluetoothAdapter mBluetoothAdapter;
@@ -219,8 +222,12 @@ public class BluetoothLeService extends Service {
     }
 
 
+    public void setScanFilter(ArrayList<String> list){
+        this.macAddressFilterList = list;
+    }
     //Function to scan for advertising BLE devices to connect to
     public boolean scanForDevices(boolean on){
+
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 
@@ -297,37 +304,42 @@ public class BluetoothLeService extends Service {
 
     }
 
+    public BluetoothAdapter.LeScanCallback mScanCallBack = new BluetoothAdapter.LeScanCallback() {
+            @Override
+            public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                if(!macAddressFilterList.contains(device.getAddress())) return;
+                final Sensor sensor = new Sensor(device, scanRecord);
+                String deviceName = sensor.getName();
+                Point3D accel = Sensor.extractAccelFromScanRecord(scanRecord);
+                String AccelerationString = "";
+                if(accel!=null) {
+                    AccelerationString = String.valueOf(accel.x) + ":" +
+                            String.valueOf(accel.y) + ":" +
+                            String.valueOf(accel.z);
+                }
+
+                //Send a broadcast to main part of the app to alert it to new found device
+                final Intent broadcast = new Intent(DeviceScanCallback.DEVICE_SCAN_RESULT);
+                broadcast.putExtra(DeviceScanCallback.EXTRA_ADDRESS, device.getAddress());
+                broadcast.putExtra(DeviceScanCallback.EXTRA_DEVICE, sensor);
+                broadcast.putExtra("Acceleration_String",AccelerationString);
+                broadcast.putExtra("name",deviceName);
+                Log.d("RACE THROW","startScanUsingOldApi: " + deviceName);
+                broadcast.putExtra(DeviceScanCallback.RSSI,rssi);
+                sendBroadcast(broadcast);
+
+            }
+        };
+
     public boolean startScanUsingOldApi(boolean on){
         if(on){
-            BluetoothAdapter.LeScanCallback startScanCallBack = new BluetoothAdapter.LeScanCallback() {
-                @Override
-                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    final Sensor sensor = new Sensor(device, scanRecord);
-                    String deviceName = sensor.getName();
 
-                    //Send a broadcast to main part of the app to alert it to new found device
-                    final Intent broadcast = new Intent(DeviceScanCallback.DEVICE_SCAN_RESULT);
-                    broadcast.putExtra(DeviceScanCallback.EXTRA_ADDRESS, device.getAddress());
-                    broadcast.putExtra(DeviceScanCallback.EXTRA_DEVICE, sensor);
-                    //broadcast.putExtra(DeviceScanCallback.EXTRA_SCAN_RESULT,result);
-                    broadcast.putExtra("name",deviceName);
-                    broadcast.putExtra(DeviceScanCallback.RSSI,rssi);
-                    sendBroadcast(broadcast);
+            if(!mBluetoothAdapter.isEnabled()) mBluetoothAdapter.enable();
 
-
-
-
-                }
-            };
-            mBluetoothAdapter.startLeScan(startScanCallBack);
+            mBluetoothAdapter.startLeScan(mScanCallBack);
         } else {
-            BluetoothAdapter.LeScanCallback stopScanCallBack = new BluetoothAdapter.LeScanCallback() {
-                @Override
-                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    Log.d("RCD","Stop callback");
-                }
-            };
-            mBluetoothAdapter.stopLeScan(stopScanCallBack);
+            mBluetoothAdapter.stopLeScan(mScanCallBack);
+
         }
 
         return true;

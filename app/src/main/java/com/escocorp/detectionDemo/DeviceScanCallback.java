@@ -18,20 +18,21 @@ import java.util.HashMap;
 public class DeviceScanCallback extends ScanCallback {
 
     //Broadcast Intent Constants
-    public final static String BEGIN_SCAN = "com.rivetry.esco.bluetooth.BEGIN_SCAN";
-    public final static String DEVICE_SCAN_COMPLETE = "com.rivetry.esco.bluetooth.DEVICE_SCAN_COMPLETE";
-    public final static String DEVICE_SCAN_CANCEL = "com.rivetry.esco.bluetooth.DEVICE_SCAN_CANCEL";
-    public final static String DEVICE_SCAN_RESULT = "com.rivetry.esco.bluetooth.DEVICE_SCAN_RESULT";
-    public final static String QR_RESULT = "com.rivetry.esco.bluetooth.QR_RESULT";
-    public final static String DEVICE_IN_PROXIMITY = "com.rivetry.esco.bluetooth.DEVICE_IN_PROXIMITY";
-    public final static String EXTRA_ADDRESS = "com.rivetry.esco.bluetooth.EXTRA_ADDRESS";
-    public final static String EXTRA_NAME = "com.rivetry.esco.bluetooth.EXTRA_NAME";
-    public final static String EXTRA_DEVICE = "com.rivetry.esco.bluetooth.EXTRA_DEVICE";
-    public final static String EXTRA_ERROR_MSG = "com.rivetry.esco.bluetooth.ERROR_MESSAGE";
-    public final static String EXTRA_SCAN_RESULT = "com.rivetry.esco.bluetooth.EXTRA_SCAN_RESULT";
-    public static final String PART_ASSIGNED = "com.rivetry.esco.bluetooth.PART_ASSIGNED" ;
-    public static final String RSSI = "com.rivetry.esco.bluetooth.RSSI";
-    public static final String SIMULATED_LOSS_DETECTED = "com.rivetry.esco.bluetooth.SIMULATED_LOSS_DETECTED";
+    public final static String BEGIN_SCAN = "com.esco.bluetooth.BEGIN_SCAN";
+    public final static String DEVICE_SCAN_COMPLETE = "com.esco.bluetooth.DEVICE_SCAN_COMPLETE";
+    public final static String DEVICE_SCAN_CANCEL = "com.esco.bluetooth.DEVICE_SCAN_CANCEL";
+    public final static String DEVICE_SCAN_RESULT = "com.esco.bluetooth.DEVICE_SCAN_RESULT";
+    public final static String QR_RESULT = "com.esco.bluetooth.QR_RESULT";
+    public final static String DEVICE_IN_PROXIMITY = "com.esco.bluetooth.DEVICE_IN_PROXIMITY";
+    public final static String EXTRA_ADDRESS = "com.esco.bluetooth.EXTRA_ADDRESS";
+    public final static String EXTRA_NAME = "com.esco.bluetooth.EXTRA_NAME";
+    public final static String EXTRA_DEVICE = "com.esco.bluetooth.EXTRA_DEVICE";
+    public final static String EXTRA_ERROR_MSG = "com.esco.bluetooth.ERROR_MESSAGE";
+    public final static String EXTRA_SCAN_RESULT = "com.esco.bluetooth.EXTRA_SCAN_RESULT";
+    public final static String EXTRA_SCAN_RECORD = "com.esco.bluetooth.EXTRA_SCAN_RECORD";
+    public static final String PART_ASSIGNED = "com.esco.bluetooth.PART_ASSIGNED" ;
+    public static final String RSSI = "com.esco.bluetooth.RSSI";
+    public static final String SIMULATED_LOSS_DETECTED = "com.esco.bluetooth.SIMULATED_LOSS_DETECTED";
 
     public static final int DATA_TYPE_FLAGS = 0x01;
     public static final int DATA_TYPE_SERVICE_UUIDS_16_BIT_PARTIAL = 0x02;

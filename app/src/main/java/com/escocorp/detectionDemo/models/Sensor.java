@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -74,8 +75,11 @@ public class Sensor implements ISensor, Parcelable {
         }
     }
 
-    public void updateSensor(int RSSI, Context context){
+    public void updateSensor(int RSSI, Point3D acceleration, Context context){
         setRssi(RSSI);
+        accelerationHistory.add(acceleration);
+        averageAcceleration = calculateAverageAcceleration();
+
         if(accelerationHistory.size()>3){
             //wait to evaluate until enough data is collected
             checkForMotion(context);
@@ -162,26 +166,6 @@ public class Sensor implements ISensor, Parcelable {
         return new Point3D(sumX/count, sumY/count, sumZ/count);
 
     }
-
-/*    public Point3D getStandardDeviationOfNewData(Point3D newData){
-        Point3D averageValues = calculateAverageAcceleration();
-        Point3D sumErrorSquared = new Point3D(0,0,0);
-        for(Point3D data: accelerationHistory){
-            double errorX = data.x - averageValues.x;
-            double errorY = data.y - averageValues.y;
-            double errorZ = data.z - averageValues.z;
-            sumErrorSquared = new Point3D(
-                    sumErrorSquared.x + (errorX*errorX),
-                    sumErrorSquared.y + (errorY*errorY),
-                    sumErrorSquared.z + (errorZ*errorZ));
-        }
-        Point3D standardDeviation = new Point3D(
-                Math.pow(sumErrorSquared.x,0.5),
-                Math.pow(sumErrorSquared.y,0.5),
-                Math.pow(sumErrorSquared.z,0.5));
-
-        return standardDeviation;
-    }*/
 
     public int getAverageRssi(){
         return averageRssi;
@@ -293,6 +277,55 @@ public class Sensor implements ISensor, Parcelable {
 
             bytesString += ("\n" + bytesSubString + "\n");
         }
+    }
+
+    public static Point3D extractAccelFromScanRecord(byte[] bytes){
+        int length;
+        String type = "";
+        String bytesString = "";
+        String bytesSubString = "";
+        int currentPos = 0;
+
+        while (currentPos < bytes.length) {
+            String lengthString = String.valueOf(bytes[currentPos]);
+            length = bytes[currentPos++] & 0xFF;
+            if (length == 0) {
+                break;
+            }
+            // Note the length includes the length of the field type itself.
+            int dataLength = length - 1;
+            // fieldType is unsigned int.
+            String fieldTypeString = String.valueOf(bytes[currentPos]);
+            int fieldType = bytes[currentPos++] & 0xFF;
+            switch (fieldType) {
+                case DeviceScanCallback.DATA_TYPE_MANUFACTURER_SPECIFIC_DATA:
+                    type = "Manufacturing Specific Data";
+
+                    if(Integer.parseInt(lengthString)<5 ){
+                        return null;
+                    } else {
+                        //this.wakeState = WAKE_STATE_ACTIVE;
+                        Point3D acceleration = DeviceScanCallback.getAcceleration(bytes, currentPos + 4);
+                        return acceleration;
+                    }
+                default:
+                    // Just ignore, we don't handle such data type.
+                    break;
+            }
+
+            bytesSubString = type + "\nLength: " + lengthString + "\nData: ";
+
+            int endPos = currentPos + dataLength;
+            currentPos = endPos;
+
+/*            while (currentPos < endPos){
+                bytesSubString += (String.valueOf(bytes[currentPos++])+" ");
+            }
+
+            bytesString += ("\n" + bytesSubString + "\n");*/
+        }
+
+        return null;
     }
 
     public void setName(String name) {

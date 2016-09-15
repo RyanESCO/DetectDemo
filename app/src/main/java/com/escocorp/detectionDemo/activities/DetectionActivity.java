@@ -2,6 +2,7 @@ package com.escocorp.detectionDemo.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.IntentService;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -54,6 +55,8 @@ import com.escocorp.detectionDemo.models.EscoPart;
 import com.escocorp.detectionDemo.models.IBucketConfig;
 import com.escocorp.detectionDemo.models.IMachineFeature;
 import com.escocorp.detectionDemo.models.Pod;
+import com.escocorp.detectionDemo.models.Point3D;
+import com.escocorp.detectionDemo.models.ScanRecord;
 import com.escocorp.detectionDemo.models.Sensor;
 import com.escocorp.detectionDemo.models.Shroud;
 import com.escocorp.detectionDemo.models.Tooth;
@@ -94,7 +97,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     //ArrayList<EscoPart> mParts;
     private HashMap<String, String> allDevicesMap;  //used to populate full BT list for BT chooser dialog
 
-    public static final int MAX_SCAN_CYCLES = 100;
+    public static final int MAX_SCAN_CYCLES = 5;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String SAVED_STATE = "saved_State";
     public static final String ACTION_BLUETOOTH_SVC_BOUND = "com.escocorp.ACTION_BLUETOOTH_SVC_BOUND";
@@ -134,6 +137,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             if (DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND.equals(action)) {
                 //Toast.makeText(getApplicationContext(),"SERVICE BOUND",Toast.LENGTH_SHORT).show();
                 mBound = true;
+                resetPairingModel();  //reset pairing model and send current MAP to service
                 beginScanning();
             }
         }
@@ -160,9 +164,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
             if(intent.getAction().equals(DeviceScanCallback.SIMULATED_LOSS_DETECTED)){
                 String name = intent.getStringExtra("name");
-                String xValues = intent.getStringExtra("x_accel");
+                /*String xValues = intent.getStringExtra("x_accel");
                 String yValues = intent.getStringExtra("y_accel");
-                String zValues = intent.getStringExtra("z_accel");
+                String zValues = intent.getStringExtra("z_accel");*/
                 if(map.size()==0 || getSupportFragmentManager().findFragmentByTag("LOSS_ALERT_FRAGMENT")!=null){
                     return;
                 }
@@ -210,9 +214,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             @Override
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(),"RESETTING",Toast.LENGTH_SHORT).show();
-                map.clear();
-                stopScanning();
-                beginScanning();
+                reset();
             }
         });
 
@@ -563,13 +565,11 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
     public void reset(){
         //mPager.setVisibility(View.INVISIBLE);
-        mResetButton.setVisibility(View.INVISIBLE);
+        //mResetButton.setVisibility(View.INVISIBLE);
         mLossDetected = false;
         stopScanning();
         if(activeFragment!=null) activeFragment.resetDisplay();
         resetPairingModel();
-
-
         beginScanning();
     }
 
@@ -628,6 +628,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         //Bucket pairingModel = mPairingsController.getPairingModel();
         map.clear();
         int totalPositions = PartData.getNumParts();
+        ArrayList<String> macAddressList=  new ArrayList<>();
         for(int position = 0; position < totalPositions; position++){
             Sensor device = new Sensor(deviceNameArray[position]);
             device.setMacAddress(macAddressArray[position]);
@@ -635,8 +636,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             mPairingsController.assignPosition(device, position);
             mPairingsController.setDeviceState(device.getMacAddress(),BluetoothLeService.STATE_NORMAL);
             map.put(device.getName(),device);
+            macAddressList.add(device.getMacAddress());
         }
         mMachineFeatureAdapter.notifyDataSetChanged();
+        mBluetoothLeService.setScanFilter(macAddressList);
 
     }
 
@@ -660,6 +663,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     public void alertLoss(Sensor lostSensor){
         int position = getPositionFromMacAddress(lostSensor.getMacAddress());
 
+
         if(position >4){
             //don't alert wing shroud loss at MinEXPO
             return;
@@ -667,7 +671,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mLossDetected = true;
         mPager.setCurrentItem(getPositionFromMacAddress(lostSensor.getMacAddress()));
         stopScanning();
-        map.clear();
+        resetPairingModel();
         changePartState(position,BluetoothLeService.STATE_LOSS_DETECTED);
         mPager.setVisibility(View.VISIBLE);
         mResetButton.setVisibility(View.VISIBLE);
@@ -691,7 +695,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             String action = intent.getAction();
             switch(action){
                 case DeviceScanCallback.DEVICE_SCAN_COMPLETE:
-                    Log.d("BT","scan complete");
+                    /*Log.d("BT","scan complete");
                     numCycles++;
 
                     if(numCycles < MAX_SCAN_CYCLES){
@@ -702,40 +706,51 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                         stopScanning();
                         numCycles = 0;
                         beginScanning();
-                    }
+                    }*/
 
                     break;
                 case DeviceScanCallback.DEVICE_SCAN_RESULT:
-                    /*if(mScrollState != ViewPager.SCROLL_STATE_IDLE){
-                        return;
-                    }*/
-                    int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
-                    String deviceName = intent.getStringExtra("name");
-                    if(deviceName==null){
+
+                    if(mLossDetected){
                         return;
                     }
+                    int RSSI = intent.getIntExtra(DeviceScanCallback.RSSI,-50);
+                    String deviceName = intent.getStringExtra("name");
+                    Log.d("RACE CATCH","Received: " + deviceName);
+
+                    if(deviceName==null || !map.containsKey(deviceName)){
+                        return;
+                    }
+
                     ScanResult result = intent.getParcelableExtra(DeviceScanCallback.EXTRA_SCAN_RESULT);
                     PartDetailFragment fragment = mPagerAdapter.getItemByName(deviceName);
                     if(fragment!=null) fragment.addChartDataPoint(RSSI);
 
                     Sensor sensor = intent.getParcelableExtra(DeviceScanCallback.EXTRA_DEVICE);
+                    Sensor sensorToModify = map.get(deviceName);
+
                     if(result!=null){
                         sensor.updateSensor(result,context);
+                        sensorToModify.updateSensor(result,context);
                     } else {
-                        sensor.updateSensor(RSSI, context);
-                    }
-                    if(!map.containsKey(deviceName)){
-                       //ignore non-configured BLE devices
-                    } else {
-                        Sensor sensorToModify = map.get(deviceName);
-
-                        if(result!=null){
-                            sensorToModify.updateSensor(result,context);
-                        } else {
-                            sensorToModify.updateSensor(RSSI, context);
+                        String accelerationString = intent.getStringExtra("Acceleration_String");
+                        if(accelerationString==null){
+                            return;
                         }
-                    }
+                        String[] accelerationArray = accelerationString.split(":");
+                        try{
+                            Point3D acceleration = new Point3D(
+                                    Double.parseDouble(accelerationArray[0]),
+                                    Double.parseDouble(accelerationArray[1]),
+                                    Double.parseDouble(accelerationArray[2]));
 
+                            sensor.updateSensor(RSSI, acceleration, context);
+                            sensorToModify.updateSensor(RSSI, acceleration, context);
+                        } catch (NumberFormatException e){
+                            e.printStackTrace();
+                        }
+
+                    }
 
                     if(!allDevicesMap.containsKey(deviceName)&&deviceName.startsWith("ESCO")){
                         allDevicesMap.put(deviceName,sensor.getMacAddress());
@@ -767,5 +782,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         super.onDestroy();
         mBluetoothLeService = null;
     }
+
+
 
 }
