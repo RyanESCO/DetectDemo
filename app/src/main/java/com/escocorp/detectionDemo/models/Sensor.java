@@ -105,7 +105,7 @@ public class Sensor implements ISensor, Parcelable {
         String yValues = "Y: ";
         String zValues = "Z: ";
 
-        for(int i = 0; i < 5 || i < accelerationHistory.size();i++){
+        /*for(int i = 0; i < 5 || i < accelerationHistory.size();i++){
             Point3D reading = accelerationHistory.get(i);
 
             DecimalFormat df = new DecimalFormat("0.0#");
@@ -114,18 +114,18 @@ public class Sensor implements ISensor, Parcelable {
             yValues += df.format(reading.y) +", ";
             zValues += df.format(reading.z) +", ";
 
-        }
+        }*/
 
-        DecimalFormat df = new DecimalFormat("0.0#");
+/*        DecimalFormat df = new DecimalFormat("0.0#");
         Log.d("RCD-ACCEL",name + " X: " + xValues);
         Log.d("RCD-ACCEL",name + " Y: " + yValues);
-        Log.d("RCD-ACCEL",name + " Z: " + zValues);
+        Log.d("RCD-ACCEL",name + " Z: " + zValues);*/
 
         final Intent broadcast = new Intent(DeviceScanCallback.SIMULATED_LOSS_DETECTED);
         broadcast.putExtra("name",getName());
-        broadcast.putExtra("x_accel",xValues);
+/*        broadcast.putExtra("x_accel",xValues);
         broadcast.putExtra("y_accel",yValues);
-        broadcast.putExtra("z_accel",zValues);
+        broadcast.putExtra("z_accel",zValues);*/
         LocalBroadcastManager.getInstance(context).sendBroadcast(broadcast);
 
     }
