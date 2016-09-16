@@ -663,7 +663,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     public void alertLoss(Sensor lostSensor){
         int position = getPositionFromMacAddress(lostSensor.getMacAddress());
 
-
         if(position >4){
             //don't alert wing shroud loss at MinEXPO
             return;

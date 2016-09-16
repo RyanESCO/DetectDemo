@@ -135,21 +135,23 @@ public class PartDetailFragment extends Fragment {
         mChart.setDrawBorders(true);
         mChart.setAutoScaleMinMaxEnabled(false);
 
-        xAxis.setGranularity(1f);
+        //xAxis.setGranularity(1f);
+        xAxis.setAxisMinValue(0f);
         xAxis.setAxisMaxValue(10f);
         xAxis.setDrawLabels(false);
         yAxisLeft.setDrawLabels(false);
 
         yAxisLeft.setEnabled(true);
-        yAxisRight.setEnabled(true);
-        mChart.setDrawGridBackground(false);
-        yAxisLeft.setDrawGridLines(false);
-        yAxisRight.setDrawGridLines(false);
-        xAxis.setDrawGridLines(false);
+        yAxisRight.setEnabled(false);
+        mChart.setDrawGridBackground(true);
+        //yAxisLeft.setDrawGridLines(true);
+        yAxisLeft.setGranularityEnabled(true);
+        //yAxisRight.setDrawGridLines(false);
+        //xAxis.setDrawGridLines(true);
         yAxisRight.setDrawLabels(false);
 
-        yAxisLeft.setAxisMaxValue(0f);
-        yAxisLeft.setAxisMinValue(-100f);
+        yAxisLeft.setAxisMaxValue(-30f);
+        yAxisLeft.setAxisMinValue(-90f);
 
         mChart.setTouchEnabled(false);
 

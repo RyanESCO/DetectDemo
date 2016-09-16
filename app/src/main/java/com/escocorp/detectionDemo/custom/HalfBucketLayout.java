@@ -29,7 +29,7 @@ public class HalfBucketLayout extends LinearLayout {
 
     private int mMaxChildWidth = 0;
     private int mMaxChildHeight = 0;
-    private int curveAmount = 10;
+    private int curveAmount = 6;
 
     private int toothHeight = 0;
     private int shroudHeight = 0;
@@ -315,14 +315,12 @@ public class HalfBucketLayout extends LinearLayout {
 
         int itemWidth = childCount>0?bucketWidth/childCount:bucketWidth;
         int leftPos = ((contentWidth/2)-(bucketWidth/2))+paddingLeft;
-        int featurePosBaseline = 50;//toothShroudLayout.getTop();//.getBottom();
+        int featurePosBaseline = 24;//toothShroudLayout.getTop();//.getBottom();
 
         View child;
         for (int idx=0; idx<childCount;idx++){
             if (null!=adapter) {
-                //curve the teeth/shrouds slightly to make the visual
-                //more interesting/realistic
-                featurePosBaseline-=curveAmount;
+
                 //use all the calculated values to layout out the teeth/shrouds
                 child = toothShroudLayout.getChildAt(idx);
                 int type = (Integer)child.getTag(R.id.tag_bucket_view_type);
@@ -332,6 +330,9 @@ public class HalfBucketLayout extends LinearLayout {
                     child.layout(leftPos, featurePosBaseline, leftPos + itemWidth, featurePosBaseline + wingShroudHeight);
                 }
                 leftPos += itemWidth;
+                //curve the teeth/shrouds slightly to make the visual
+                //more interesting/realistic
+                featurePosBaseline-=curveAmount;
             }
         }
     }
