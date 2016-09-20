@@ -58,7 +58,7 @@
         app:layout_anchorGravity="bottom">
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/textViewMonitoringStatus"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginLeft="5dp"
@@ -79,35 +79,43 @@
             android:scaleType="centerInside"
             android:src="@drawable/red_led" />
 
-        <Chronometer
-            android:id="@+id/chrono0"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/chronoLayout"
+            android:visibility="invisible">
+            <Chronometer
+                android:id="@+id/chrono0"
+                android:layout_width="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_height="wrap_content" />
 
-        <Chronometer
-            android:id="@+id/chrono1"
-            android:layout_width="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_height="wrap_content" />
+            <Chronometer
+                android:id="@+id/chrono1"
+                android:layout_width="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_height="wrap_content" />
 
-        <Chronometer
-            android:id="@+id/chrono2"
-            android:layout_width="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_height="wrap_content" />
+            <Chronometer
+                android:id="@+id/chrono2"
+                android:layout_width="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_height="wrap_content" />
 
-        <Chronometer
-            android:id="@+id/chrono3"
-            android:layout_width="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_height="wrap_content" />
+            <Chronometer
+                android:id="@+id/chrono3"
+                android:layout_width="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_height="wrap_content" />
 
-        <Chronometer
-            android:id="@+id/chrono4"
-            android:layout_width="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_height="wrap_content" />
+            <Chronometer
+                android:id="@+id/chrono4"
+                android:layout_width="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
 
         <TextView
             android:id="@+id/textViewReset"

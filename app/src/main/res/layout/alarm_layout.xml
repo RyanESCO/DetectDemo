@@ -8,7 +8,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:elevation="5dp"
-        android:layout_margin="10dp"
+        android:layout_margin="5dp"
         android:layout_height="match_parent">
 
         <TextView
@@ -26,36 +26,23 @@
             android:id="@+id/dialogMessageTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="32sp"
+            android:textSize="30sp"
             android:gravity="center_horizontal"
             android:text="test"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="2dp" />
 
         <ImageView
-            android:layout_width="175dp"
+            android:layout_width="150dp"
             android:id="@+id/imageViewDialog"
-            android:layout_height="175dp"
+            android:layout_height="150dp"
             android:layout_gravity="center_horizontal"
             android:scaleType="centerInside"
             android:layout_margin="5dp"
             android:contentDescription="Instructions" />
 
-<!--      <TextView
-            android:layout_width="wrap_content"
-            android:textColor="@color/white"
-            android:background="@color/colorAccent"
-            android:gravity="right"
-
-            android:layout_weight="1"
-            android:layout_height="0dp"
-            android:padding="10dp"
-            android:layout_gravity="right"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="ACCEPT"
-            android:id="@+id/accept_button" />-->
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/accept_fab"

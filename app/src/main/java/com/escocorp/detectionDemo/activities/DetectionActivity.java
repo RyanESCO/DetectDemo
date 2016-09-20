@@ -2,7 +2,6 @@ package com.escocorp.detectionDemo.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.IntentService;
 import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -12,13 +11,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.ToneGenerator;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.Preference;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -33,6 +33,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Chronometer;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,20 +51,16 @@ import com.escocorp.detectionDemo.fragments.PartDetailFragment;
 import com.escocorp.detectionDemo.fragments.SensorDialogFragment;
 import com.escocorp.detectionDemo.models.Bucket;
 import com.escocorp.detectionDemo.models.BucketConfig;
-import com.escocorp.detectionDemo.models.DemoPart;
-import com.escocorp.detectionDemo.models.EscoPart;
 import com.escocorp.detectionDemo.models.IBucketConfig;
 import com.escocorp.detectionDemo.models.IMachineFeature;
 import com.escocorp.detectionDemo.models.Pod;
 import com.escocorp.detectionDemo.models.Point3D;
-import com.escocorp.detectionDemo.models.ScanRecord;
 import com.escocorp.detectionDemo.models.Sensor;
 import com.escocorp.detectionDemo.models.Shroud;
 import com.escocorp.detectionDemo.models.Tooth;
 import com.escocorp.detectionDemo.models.WingShroud;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -74,6 +71,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     private ImageView led;
     private TextView mResetButton;
     private ImageView mHiddenResetButton;
+    private TextView mChronoToggle;
+    private LinearLayout mChronoView;
 
     PartDetailFragment activeFragment;
     private PartDetailViewPager mPager;
@@ -215,6 +214,22 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(),"RESETTING",Toast.LENGTH_SHORT).show();
                 reset();
+            }
+        });
+
+        mChronoToggle = (TextView) findViewById(R.id.textViewMonitoringStatus);
+        mChronoView = (LinearLayout) findViewById(R.id.chronoLayout);
+
+        mChronoToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mChronoView.getVisibility()==View.INVISIBLE){
+                    mChronoView.setVisibility(View.VISIBLE);
+                } else {
+                    mChronoView.setVisibility(View.INVISIBLE);
+                }
+
+
             }
         });
 
@@ -676,6 +691,11 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         mResetButton.setVisibility(View.VISIBLE);
         activeFragment = (PartDetailFragment) mPagerAdapter.getItem(position);
         activeFragment.alertLoss();
+
+        final ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
+        tg.startTone(ToneGenerator.TONE_PROP_PROMPT);
+        MediaPlayer player = MediaPlayer.create(this,R.raw.sep_detect);
+        player.start();
 
     }
 
