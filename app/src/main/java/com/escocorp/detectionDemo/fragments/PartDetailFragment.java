@@ -3,6 +3,7 @@ package com.escocorp.detectionDemo.fragments;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -226,7 +227,7 @@ public class PartDetailFragment extends Fragment {
     }
 
     public void buildAlertLayout(){
-        TextView acceptButton = (TextView) mRootView.findViewById(R.id.accept_button);
+        FloatingActionButton acceptButton = (FloatingActionButton) mRootView.findViewById(R.id.accept_fab);
 
         acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override

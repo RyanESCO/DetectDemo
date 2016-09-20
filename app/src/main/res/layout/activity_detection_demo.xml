@@ -125,23 +125,4 @@
 
     </LinearLayout>
 
-
-    <!--<android.support.design.widget.FloatingActionButton
-        android:id="@+id/fabStart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_menu_search" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fabStop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_media_pause"
-        android:visibility="invisible" />-->
-
-
 </android.support.design.widget.CoordinatorLayout>

@@ -75,8 +75,8 @@ public class PartData {
             "9/26/2016",
             "9/12/2016",
             "9/26/2016",
-            "8/31/2016",
-            "8/31/2016"
+            "N/A",
+            "N/A"
             };
     
     public static final String[] usageArray= {
@@ -85,8 +85,8 @@ public class PartData {
             "8",
             "180",
             "8",
-            "260",
-            "260"};
+            "N/A",
+            "N/A"};
 
 /*    public static final String[] initialDeviceNameArray = {
             "ESCO#00191",

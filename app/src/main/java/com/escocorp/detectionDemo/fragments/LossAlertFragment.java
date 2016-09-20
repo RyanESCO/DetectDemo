@@ -2,6 +2,7 @@ package com.escocorp.detectionDemo.fragments;
 
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +41,7 @@ public class LossAlertFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.alarm_layout, container, false);
 
-        TextView acceptButton = (TextView) rootView.findViewById(R.id.accept_button);
+        FloatingActionButton acceptButton = (FloatingActionButton) rootView.findViewById(R.id.accept_fab);
 
         acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -3,6 +3,13 @@
     android:oneshot="false">
 
     <item
+        android:drawable="@drawable/loss_image1"
+        android:duration="@integer/animation_time"></item>
+    <item
+        android:drawable="@drawable/loss_image2"
+        android:duration="@integer/animation_blank_time"></item>
+
+    <!--<item
         android:drawable="@drawable/a01"
         android:duration="@integer/animation_time"></item>
     <item
@@ -79,5 +86,5 @@
         android:duration="@integer/animation_time"></item>
     <item
         android:drawable="@drawable/a26"
-        android:duration="@integer/animation_time"></item>
+        android:duration="@integer/animation_time"></item>-->
 </animation-list>

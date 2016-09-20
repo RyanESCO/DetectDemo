@@ -19,8 +19,8 @@
     <dimen name="card_controls_outer_border">8dp</dimen>
     <dimen name="item_width">150dp</dimen>
     <dimen name="text_margin">5dp</dimen>
-    <dimen name="grid_label_size">10sp</dimen>
     <dimen name="footer_height">30dp</dimen>
     <dimen name="header_height">50dp</dimen>
-    <integer name="animation_time">40</integer>
+    <integer name="animation_time">600</integer>
+    <integer name="animation_blank_time">300</integer>
 </resources>
