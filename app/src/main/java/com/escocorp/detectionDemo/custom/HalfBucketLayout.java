@@ -26,7 +26,7 @@ public class HalfBucketLayout extends LinearLayout {
 
     private static double scaleRatioHeight = 0.75;
     private static double scaleRatioWidth = 1.0;
-    private static double wingShroudRatio = 0.17;
+    private static double wingShroudRatio = 0.12;
     private static double bucketMonitorRatio = 0.1;
 
     public static int toothShroudOffset = 20;
