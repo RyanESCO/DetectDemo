@@ -6,11 +6,13 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -26,6 +28,8 @@ public class HalfBucketLayout extends LinearLayout {
     private static double scaleRatioWidth = 1.0;
     private static double wingShroudRatio = 0.17;
     private static double bucketMonitorRatio = 0.1;
+
+    public static int toothShroudOffset = 20;
 
     private int mMaxChildWidth = 0;
     private int mMaxChildHeight = 0;
@@ -136,7 +140,22 @@ public class HalfBucketLayout extends LinearLayout {
                     continue;
                 }
 
-                int wSpec = MeasureSpec.makeMeasureSpec(contentWidth / count, MeasureSpec.AT_MOST);
+                int offset = 0;
+                //add offset to change size of shroud and tooth for aesthetics
+                if(idx%2==0){
+                    //tooth
+                    offset = toothShroudOffset * -1;
+
+                } else {
+                    //shroud
+                    offset = toothShroudOffset * 3 / 2;
+
+                }
+
+                //int offset = (int)(Math.pow(-1,(double)idx%2) * toothShroudOffset);
+                //Log.d("RCD",String.valueOf(offset));
+
+                int wSpec = MeasureSpec.makeMeasureSpec(contentWidth / count, MeasureSpec.AT_MOST) + offset;
                 int hSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(toothHeight), MeasureSpec.AT_MOST);
                 if ((Integer) child.getTag(R.id.tag_bucket_view_type) == MachineFeature.FEATURE_TYPE_SHROUD) {
                     hSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(shroudHeight), MeasureSpec.AT_MOST);
@@ -313,6 +332,7 @@ public class HalfBucketLayout extends LinearLayout {
 
         final int curveCount = childCount/2;//find the mid point
 
+
         int itemWidth = childCount>0?bucketWidth/childCount:bucketWidth;
         int leftPos = ((contentWidth/2)-(bucketWidth/2))+paddingLeft;
         int featurePosBaseline = 24;//toothShroudLayout.getTop();//.getBottom();
@@ -325,11 +345,12 @@ public class HalfBucketLayout extends LinearLayout {
                 child = toothShroudLayout.getChildAt(idx);
                 int type = (Integer)child.getTag(R.id.tag_bucket_view_type);
                 if (type == MachineFeature.FEATURE_TYPE_TOOTH) {
-                    child.layout(leftPos, featurePosBaseline, leftPos + itemWidth, featurePosBaseline+toothHeight);
+                    child.layout(leftPos, featurePosBaseline, leftPos + itemWidth - toothShroudOffset, featurePosBaseline+toothHeight);
+                    leftPos += (itemWidth - toothShroudOffset);
                 } else if (type == MachineFeature.FEATURE_TYPE_SHROUD) {
-                    child.layout(leftPos, featurePosBaseline, leftPos + itemWidth, featurePosBaseline + wingShroudHeight);
+                    child.layout(leftPos, featurePosBaseline, leftPos + itemWidth + (toothShroudOffset*3/2), featurePosBaseline + wingShroudHeight);
+                    leftPos += (itemWidth + (toothShroudOffset*3/2));
                 }
-                leftPos += itemWidth;
                 //curve the teeth/shrouds slightly to make the visual
                 //more interesting/realistic
                 featurePosBaseline-=curveAmount;
@@ -526,6 +547,7 @@ public class HalfBucketLayout extends LinearLayout {
                 }
                 ((TextView) child.findViewById(R.id.mc_name)).setTextColor(color);
                 ((ImageButton) child.findViewById(R.id.mc_button)).setImageDrawable(getResources().getDrawable(graphic));
+
             }
         }
     }

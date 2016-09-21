@@ -11,7 +11,8 @@ public class PartData {
     /*public static ArrayList<DemoParts> partsArrayList = new ArrayList<DemoParts>();*/
 
     public static int getNumParts(){
-        return initialDeviceNameArray.length;
+        //return initialDeviceNameArray.length;
+        return 7;
     }
 
     public static int getImageId(Context context, String imageName) {
@@ -30,16 +31,15 @@ public class PartData {
 
     }
 
-
-
     public static final String[] initialDeviceNameArray = {
             "ESCO#00222",
             "ESCO#00191",
             "ESCO#00232",
             "ESCO#00218",
             "ESCO#00238",
-            "ESCO#00243",
-            "ESCO#00245"};
+            "ESCO#00245",
+            "ESCO#08888",
+            "ESCO#08889"};
 
     public static final String[] initialMacAddressArray = {
             "00:07:80:15:2E:32",
@@ -48,7 +48,7 @@ public class PartData {
             "00:07:80:C0:6E:70",
             "00:07:80:15:2E:1F",
             "00:07:80:15:2E:3E",
-            "00:07:80:C0:6E:56"};
+            "00:07:80:C0:2E:1E"};
 
     public static final String[] imageArray = {
             "point_hq",

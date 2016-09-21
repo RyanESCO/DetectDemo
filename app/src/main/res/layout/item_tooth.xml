@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="fill_parent"
+    android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="fill_parent"
     android:padding="2dp">
 
     <ImageButton
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/mc_button"
         android:background="?attr/selectableItemBackground"
         android:src="@drawable/tooth"
+        android:adjustViewBounds="true"
         android:scaleType="fitXY" />
 
     <TextView

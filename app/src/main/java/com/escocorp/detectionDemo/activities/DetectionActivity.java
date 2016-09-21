@@ -83,7 +83,6 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
 
     Chronometer [] chronometers = new Chronometer[5];
 
-
     private HashMap<String, Sensor> map;
     protected IconSpinnerProgressDialog progressDialog;
     private MachineFeatureAdapter mMachineFeatureAdapter;
@@ -120,6 +119,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                     (BluetoothLeService.BluetoothQueueServiceLocalBinder) service;
             mBluetoothLeService = binder.getService();
             sendBroadcast(new Intent(DetectionActivity.ACTION_BLUETOOTH_SVC_BOUND));
+            Log.d("RCD","Service Bound");
         }
 
         @Override
@@ -171,6 +171,8 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                 }
                 Sensor lostSensor = map.get(name);
                 if(null!=lostSensor){
+
+                    Log.d("RCD",lostSensor.getName() + ": DETECTED LOST");
                     alertLoss(lostSensor);
                 }
 
@@ -300,12 +302,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                 builder.setPositiveButton(android.R.string.ok, null);
                 builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
 
-
                     @TargetApi(Build.VERSION_CODES.M)
                     public void onDismiss(DialogInterface dialog) {
                         requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
                     }
-
 
                 });
                 builder.show();
@@ -579,8 +579,11 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     }
 
     public void reset(){
-        //mPager.setVisibility(View.INVISIBLE);
-        //mResetButton.setVisibility(View.INVISIBLE);
+        //to prevent multiple reset calls from starting duplicate scans
+        if(!mLossDetected){
+            return;
+        }
+
         mLossDetected = false;
         stopScanning();
         if(activeFragment!=null) activeFragment.resetDisplay();
@@ -591,7 +594,9 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     @Override
     protected void onPause() {
         super.onPause();
+        stopScanning();
         unregisterReceiver(mDeviceScanReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalBroadcastReceiver);
         unregisterReceiver(mBlueToothServiceReceiver);
 
         if(mBound) unbindService(mServiceConnection);
@@ -676,6 +681,7 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
     }
 
     public void alertLoss(Sensor lostSensor){
+        Log.d("RCD","SEPARATION DETECTED");
         int position = getPositionFromMacAddress(lostSensor.getMacAddress());
 
         if(position >4){
@@ -697,6 +703,16 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
         MediaPlayer player = MediaPlayer.create(this,R.raw.sep_detect);
         player.start();
 
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                mediaPlayer.stop();
+                if (mediaPlayer != null) {
+                    mediaPlayer.release();
+                }
+
+            }
+        });
     }
 
     public int getPositionFromMacAddress(String macAddress){
@@ -780,10 +796,10 @@ public class DetectionActivity extends AppCompatActivity implements IPairingsLis
                     if(position < 5 && position > -1){
                         long elapsedMillis = SystemClock.elapsedRealtime() - chronometers[position].getBase();
                         if(elapsedMillis>4500){
-                            Log.d("RCD","delay: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+                            //Log.d("RCD","delay: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
                         }
                         chronometers[position].setBase(SystemClock.elapsedRealtime());
-                        Log.d("RCD","delay: " + String.valueOf(elapsedMillis) + "ms");
+                        //Log.d("RCD","delay: " + String.valueOf(elapsedMillis) + "ms");
 
                     }
 
